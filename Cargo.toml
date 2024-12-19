@@ -1,0 +1,24 @@
+[package]
+name = "rasopus"
+version = "0.0.1"
+authors = ["Torben Schweren"]
+edition = "2021"
+rust-version = "1.82.0"
+description = "The Rasopus URL shortener backend"
+readme = "README.md"
+repository = "https://github.com/WaifuSquad/Rasopus-Backend"
+license = "MIT"
+keywords = ["backend", "url-shortener", "rocket", "rest", "api"]
+exclude = [".devcontainer", ".github", ".vscode"]
+
+[profile.release]
+debug = false
+opt-level = 3
+lto = true
+
+[profile.dev]
+debug = true
+opt-level = 0
+lto = false
+
+[dependencies]
