@@ -22,3 +22,5 @@ opt-level = 0
 lto = false
 
 [dependencies]
+rocket = { version = "0.5.1", features = ["json", "secrets"] }
+tokio = { version = "1.42.0", features = ["full"] }
