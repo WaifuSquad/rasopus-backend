@@ -22,5 +22,8 @@ opt-level = 0
 lto = false
 
 [dependencies]
+okapi = { version = "0.7.0", features = ["impl_json_schema", "preserve_order"] }
 rocket = { version = "0.5.1", features = ["json", "secrets"] }
+rocket_okapi = { version = "0.9.0", features = ["preserve_order", "secrets", "swagger", "uuid"] }
+thiserror = "2.0.9"
 tokio = { version = "1.42.0", features = ["full"] }
