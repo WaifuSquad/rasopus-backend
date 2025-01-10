@@ -1,0 +1,10 @@
+services:
+  rasopus-backend:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    ports:
+      - "8000:8000"
+    environment:
+      - ROCKET_ADDRESS=0.0.0.0
+      - ROCKET_SECRET_KEY=pnUM94/8LhhtSE1REEihKj7npG6+lvigAy4C885fIzY=
