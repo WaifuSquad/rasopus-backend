@@ -1,5 +1,5 @@
 services:
-  rasopus:
+  rasopus-backend:
     build:
       context: .
       dockerfile: Dockerfile
