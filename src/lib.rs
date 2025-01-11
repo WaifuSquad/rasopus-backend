@@ -1,11 +1,25 @@
+use config::{env::EnvConfig, rocket_overrides::RocketOverrides};
+use lum_config::{EnvHandler, EnvironmentConfigParseError};
 use rocket::Rocket;
 use rocket_okapi::swagger_ui::*;
 
+pub mod config;
 pub mod controller;
 pub mod macros;
 
-pub fn build_rocket() -> Rocket<rocket::Build> {
-    rocket::build()
+pub static APP_NAME: &str = "Rasopus";
+pub static APP_VERSION: &str = env!("CARGO_PKG_VERSION");
+
+pub fn parse_env_config() -> Result<EnvConfig, EnvironmentConfigParseError> {
+    EnvHandler::<EnvConfig>::new(APP_NAME).load_config()
+}
+
+pub fn build_rocket(rocket_overrides: RocketOverrides) -> Rocket<rocket::Build> {
+    let figment = rocket::Config::figment()
+        .merge(("address", rocket_overrides.address))
+        .merge(("port", rocket_overrides.port));
+
+    rocket::custom(figment)
         .mount("/", controller::openapi_get_routes())
         .mount(
             "/swagger",
