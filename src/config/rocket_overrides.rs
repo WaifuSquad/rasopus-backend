@@ -1,31 +1,45 @@
-use lum_config::MergeFrom;
-use rocket::serde::{Deserialize, Serialize};
+use rocket::{
+    figment::Figment,
+    serde::{Deserialize, Serialize},
+};
 
-use super::env::EnvConfig;
+use super::environment::EnvironmentConfig;
 
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Default, Serialize, Deserialize)]
 #[serde(crate = "rocket::serde", default)]
 pub struct RocketOverrides {
-    pub address: String,
-    pub port: u16,
+    pub address: Option<String>,
+    pub port: Option<u16>,
 }
 
-impl Default for RocketOverrides {
-    fn default() -> Self {
+impl RocketOverrides {
+    pub fn apply(self, mut rocket_figment: Figment) -> Figment {
+        if let Some(address) = &self.address {
+            rocket_figment = rocket_figment.merge(("address", address));
+        }
+
+        if let Some(port) = &self.port {
+            rocket_figment = rocket_figment.merge(("port", port));
+        }
+
+        rocket_figment
+    }
+}
+
+impl From<EnvironmentConfig> for RocketOverrides {
+    fn from(environment_config: EnvironmentConfig) -> Self {
         Self {
-            address: "0.0.0.0".to_string(),
-            port: 8000,
+            address: environment_config.address,
+            port: environment_config.port,
         }
     }
 }
 
-impl MergeFrom<EnvConfig> for RocketOverrides {
-    fn merge_from(self, env_config: EnvConfig) -> Self {
-        let default = RocketOverrides::default();
-
+impl From<&EnvironmentConfig> for RocketOverrides {
+    fn from(environment_config: &EnvironmentConfig) -> Self {
         Self {
-            address: env_config.address.unwrap_or(default.address),
-            port: env_config.port.unwrap_or(default.port),
+            address: environment_config.address.clone(),
+            port: environment_config.port,
         }
     }
 }
