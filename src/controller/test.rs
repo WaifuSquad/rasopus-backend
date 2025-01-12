@@ -32,7 +32,7 @@ pub enum TestEnum {
     OneBoolean(bool),
 
     /// When there are two strings
-    TwoStrings(String, String),
+    TwoStrings { first: String, second: String },
 }
 
 /// This will always return a `TestStruct`. It can't fail.

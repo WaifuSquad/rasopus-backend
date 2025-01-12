@@ -36,8 +36,8 @@ pub enum MayFailError {
     B(i8),
 
     /// This value occurs on error C
-    #[error("C: {0}, {1}")]
-    C(i16, i32),
+    #[error("C: {val1}, {val2}")]
+    C { val1: i16, val2: i32 },
 }
 
 impl<'r> Responder<'r, 'static> for MayFailError {
@@ -45,7 +45,7 @@ impl<'r> Responder<'r, 'static> for MayFailError {
         let status_code = match self {
             MayFailError::A => 700,
             MayFailError::B(_) => 701,
-            MayFailError::C(_, _) => 702,
+            MayFailError::C { .. } => 702,
         };
 
         status::Custom(Status::new(status_code), Json(self)).respond_to(request)
@@ -53,17 +53,17 @@ impl<'r> Responder<'r, 'static> for MayFailError {
 }
 
 impl_okapi_json_responder!(MayFailError, {
-    "700" => {
+    "460" => {
         description: "A happened",
         example: serde_json::json!(MayFailError::A),
     },
-    "701" => {
+    "461" => {
         description: "B happened",
         example: serde_json::json!(MayFailError::B(1)),
     },
-    "702" => {
+    "462" => {
         description: "C happened",
-        example: serde_json::json!(MayFailError::C(1, 2)),
+        example: serde_json::json!(MayFailError::C { val1: 1, val2: 2 }),
     },
 });
 
@@ -71,5 +71,5 @@ impl_okapi_json_responder!(MayFailError, {
 #[openapi]
 #[get("/may_fail")]
 pub fn may_fail() -> Result<Json<MayFailSuccess>, MayFailError> {
-    Err(MayFailError::C(1, 2))
+    Err(MayFailError::C { val1: 1, val2: 2 })
 }
