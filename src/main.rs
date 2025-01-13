@@ -1,9 +1,13 @@
 use anyhow::Result;
 use rasopus::{
     build_rocket,
-    config::{database::DatabaseConfig, rocket_overrides::RocketOverrides},
+    config::{
+        database::{DatabaseConfig, ToConnectionString},
+        rocket_overrides::RocketOverrides,
+    },
     parse_env_config, APP_NAME, APP_VERSION,
 };
+use sqlx::any::AnyPoolOptions;
 
 #[rocket::main]
 async fn main() -> Result<()> {
@@ -20,6 +24,10 @@ async fn main() -> Result<()> {
 
     println!("Connecting to database");
     let database_config = DatabaseConfig::from(&environment_config);
+    let pool = AnyPoolOptions::new()
+        .max_connections(database_config.pool_size)
+        .connect(&database_config.to_connection_string())
+        .await?;
 
     println!("Building Rocket with Rasopus configuration");
     let rocket_overrides = RocketOverrides::from(&environment_config);
