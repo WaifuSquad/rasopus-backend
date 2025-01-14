@@ -5,6 +5,7 @@ use rocket_okapi::swagger_ui::*;
 
 pub mod config;
 pub mod controller;
+pub mod database;
 pub mod macros;
 
 pub static APP_NAME: &str = "Rasopus";

@@ -2,28 +2,20 @@ use rocket::serde::{Deserialize, Serialize};
 
 use super::environment::EnvironmentConfig;
 
-pub trait ToConnectionString {
-    fn to_connection_string(&self) -> String;
-}
-
 #[derive(Debug, Clone, Serialize, Deserialize)]
 #[serde(crate = "rocket::serde")]
 pub enum DatabaseType {
+    #[serde(rename = "postgres")]
     Postgres,
-    MySQL,
-    Sqlite,
-    Memory,
-}
 
-impl ToConnectionString for DatabaseType {
-    fn to_connection_string(&self) -> String {
-        match self {
-            DatabaseType::Postgres => "postgres".to_string(),
-            DatabaseType::MySQL => "mysql".to_string(),
-            DatabaseType::Sqlite => "sqlite".to_string(),
-            DatabaseType::Memory => "memory".to_string(),
-        }
-    }
+    #[serde(rename = "mysql")]
+    MySQL,
+
+    #[serde(rename = "sqlite")]
+    Sqlite,
+
+    #[serde(rename = "memory")]
+    Memory,
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
@@ -38,34 +30,29 @@ pub struct DatabaseConfig {
     pub pool_size: u32,
 }
 
-impl ToConnectionString for DatabaseConfig {
-    fn to_connection_string(&self) -> String {
+impl DatabaseConfig {
+    pub fn to_connection_string(&self) -> String {
         match self.database_type {
             DatabaseType::Memory => "sqlite::memory:".to_string(),
-            _ => format!(
-                "{}://{}:{}@{}:{}/{}",
-                self.database_type.to_connection_string(),
-                self.user,
-                self.password,
-                self.host,
-                self.port,
-                self.database
-            ),
-        }
-    }
-}
+            _ => {
+                let database_type_string = match self.database_type {
+                    DatabaseType::Postgres => "postgres".to_string(),
+                    DatabaseType::MySQL => "mysql".to_string(),
+                    DatabaseType::Sqlite => "sqlite".to_string(),
+                    DatabaseType::Memory => "memory".to_string(),
+                };
 
-impl ToConnectionString for &DatabaseConfig {
-    fn to_connection_string(&self) -> String {
-        format!(
-            "{}://{}:{}@{}:{}/{}",
-            self.database_type.to_connection_string(),
-            self.user,
-            self.password,
-            self.host,
-            self.port,
-            self.database
-        )
+                format!(
+                    "{}://{}:{}@{}:{}/{}",
+                    database_type_string,
+                    self.user,
+                    self.password,
+                    self.host,
+                    self.port,
+                    self.database
+                )
+            }
+        }
     }
 }
 

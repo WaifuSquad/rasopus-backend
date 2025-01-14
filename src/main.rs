@@ -1,11 +1,8 @@
 use anyhow::Result;
 use rasopus::{
     build_rocket,
-    config::{
-        database::{DatabaseConfig, ToConnectionString},
-        rocket_overrides::RocketOverrides,
-    },
-    parse_env_config, APP_NAME, APP_VERSION,
+    config::{database::DatabaseConfig, rocket_overrides::RocketOverrides},
+    database, parse_env_config, APP_NAME, APP_VERSION,
 };
 use sqlx::any::AnyPoolOptions;
 
@@ -22,12 +19,27 @@ async fn main() -> Result<()> {
         }
     };
 
+    println!("Initializing database drivers");
+    sqlx::any::install_default_drivers();
+
     println!("Connecting to database");
+
     let database_config = DatabaseConfig::from(&environment_config);
     let pool = AnyPoolOptions::new()
         .max_connections(database_config.pool_size)
         .connect(&database_config.to_connection_string())
         .await?;
+
+    println!("Checking database migrations");
+    let migrator = sqlx::migrate!("./migrations");
+    let needs_migration = database::needs_migration(&pool, &migrator).await?;
+    if needs_migration {
+        println!("Applying missing database migrations");
+        migrator.run(&pool).await?;
+        println!("Database migrations applied");
+    } else {
+        println!("Database is up to date");
+    }
 
     println!("Building Rocket with Rasopus configuration");
     let rocket_overrides = RocketOverrides::from(&environment_config);

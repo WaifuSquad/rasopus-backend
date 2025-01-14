@@ -21,6 +21,9 @@ debug = true
 opt-level = 0
 lto = false
 
+[profile.dev.package.sqlx-macros]
+opt-level = 3
+
 [dependencies]
 anyhow = "1.0.95"
 lum_config = "0.1.5"

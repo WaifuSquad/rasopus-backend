@@ -10,6 +10,7 @@ RUN adduser -D -u 1000 rasopus
 RUN mkdir /app
 WORKDIR /app
 COPY ./src /app/src
+COPY ./migrations /app/migrations
 COPY ./Cargo.toml /app/Cargo.toml
 COPY ./Cargo.lock /app/Cargo.lock
 COPY ./rust-toolchain.toml /app/rust-toolchain.toml

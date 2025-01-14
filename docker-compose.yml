@@ -1,5 +1,17 @@
 services:
+  rasopus-database:
+    image: postgres:13
+    environment:
+      - POSTGRES_USER=rasopus
+      - POSTGRES_PASSWORD=postgres
+      - POSTGRES_DB=rasopus
+    ports:
+      - "5432:5432"
+    volumes:
+      - /tmp/rasopus_postgres_data:/var/lib/postgresql/data
   rasopus-backend:
+    depends_on:
+      - rasopus-database
     build:
       context: .
       dockerfile: Dockerfile
@@ -9,3 +21,10 @@ services:
       - RASOPUS_ADDRESS=0.0.0.0
       - RASOPUS_PORT=8000
       - ROCKET_SECRET_KEY=pnUM94/8LhhtSE1REEihKj7npG6+lvigAy4C885fIzY=
+      - RASOPUS_DATABASE_TYPE=memory
+      - RASOPUS_DATABASE_USER=rasopus
+      - RASOPUS_DATABASE_PASSWORD=postgres
+      - RASOPUS_DATABASE_HOST=localhost
+      - RASOPUS_DATABASE_PORT=5432
+      - RASOPUS_DATABASE_DATABASE=rasopus
+      - RASOPUS_DATABASE_POOL_SIZE=10
