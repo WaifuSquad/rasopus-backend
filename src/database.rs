@@ -37,7 +37,9 @@ pub async fn needs_migration(
 
             Err(error.into())
         }
+
         Err(error) => Err(error.into()),
+
         Ok(applied_migrations) => {
             let applied_checksums = applied_migrations
                 .iter()

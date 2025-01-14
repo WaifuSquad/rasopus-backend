@@ -34,6 +34,7 @@ impl DatabaseConfig {
     pub fn to_connection_string(&self) -> String {
         match self.database_type {
             DatabaseType::Memory => "sqlite::memory:".to_string(),
+
             _ => {
                 let database_type_string = match self.database_type {
                     DatabaseType::Postgres => "postgres".to_string(),
