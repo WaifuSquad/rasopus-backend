@@ -6,21 +6,21 @@ use sqlx::{
 use thiserror::Error;
 
 #[derive(Debug, Error)]
-pub enum MigrationError {
+pub enum CheckMigrationError {
     #[error("Failed to acquire connection from pool")]
-    SqlxError(#[from] SqlxError),
+    Sqlx(#[from] SqlxError),
 
     #[error("Failed to run migrations")]
-    SqlxMigrateError(#[from] SqlxMigrateError),
+    SqlxMigrate(#[from] SqlxMigrateError),
 
-    #[error("Failed to run migrations")]
-    SqlxDatabaseError(#[from] Box<dyn SqlxDatabaseError>),
+    #[error("Failed to execute database query")]
+    SqlxDatabase(#[from] Box<dyn SqlxDatabaseError>),
 }
 
 pub async fn needs_migration(
     pool: &Pool<Any>,
     migrator: &Migrator,
-) -> Result<bool, MigrationError> {
+) -> Result<bool, CheckMigrationError> {
     let all_checksums = migrator
         .iter()
         .map(|migration| migration.checksum.clone())

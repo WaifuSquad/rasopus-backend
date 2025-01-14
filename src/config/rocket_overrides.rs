@@ -3,7 +3,7 @@ use rocket::{
     serde::{Deserialize, Serialize},
 };
 
-use super::environment::EnvironmentConfig;
+use super::rasopus::RasopusConfig;
 
 #[derive(Debug, Clone, Default, Serialize, Deserialize)]
 #[serde(crate = "rocket::serde", default)]
@@ -26,8 +26,8 @@ impl RocketOverrides {
     }
 }
 
-impl From<EnvironmentConfig> for RocketOverrides {
-    fn from(environment_config: EnvironmentConfig) -> Self {
+impl From<RasopusConfig> for RocketOverrides {
+    fn from(environment_config: RasopusConfig) -> Self {
         Self {
             address: environment_config.address,
             port: environment_config.port,
@@ -35,8 +35,8 @@ impl From<EnvironmentConfig> for RocketOverrides {
     }
 }
 
-impl From<&EnvironmentConfig> for RocketOverrides {
-    fn from(environment_config: &EnvironmentConfig) -> Self {
+impl From<&RasopusConfig> for RocketOverrides {
+    fn from(environment_config: &RasopusConfig) -> Self {
         Self {
             address: environment_config.address.clone(),
             port: environment_config.port,

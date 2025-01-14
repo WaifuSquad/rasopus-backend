@@ -1,6 +1,6 @@
 use rocket::serde::{Deserialize, Serialize};
 
-use super::environment::EnvironmentConfig;
+use super::rasopus::RasopusConfig;
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
 #[serde(crate = "rocket::serde")]
@@ -56,8 +56,8 @@ impl DatabaseConfig {
     }
 }
 
-impl From<EnvironmentConfig> for DatabaseConfig {
-    fn from(environment_config: EnvironmentConfig) -> Self {
+impl From<RasopusConfig> for DatabaseConfig {
+    fn from(environment_config: RasopusConfig) -> Self {
         Self {
             database_type: environment_config.database_type,
             user: environment_config.database_user,
@@ -70,8 +70,8 @@ impl From<EnvironmentConfig> for DatabaseConfig {
     }
 }
 
-impl From<&EnvironmentConfig> for DatabaseConfig {
-    fn from(environment_config: &EnvironmentConfig) -> Self {
+impl From<&RasopusConfig> for DatabaseConfig {
+    fn from(environment_config: &RasopusConfig) -> Self {
         Self {
             database_type: environment_config.database_type.clone(),
             user: environment_config.database_user.clone(),

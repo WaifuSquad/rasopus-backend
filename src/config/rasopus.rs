@@ -4,7 +4,7 @@ use super::database::DatabaseType;
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
 #[serde(crate = "rocket::serde")]
-pub struct EnvironmentConfig {
+pub struct RasopusConfig {
     pub address: Option<String>,
     pub port: Option<u16>,
 
