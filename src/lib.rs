@@ -52,7 +52,7 @@ pub enum RuntimeError {
     #[error("Failed to run database migrations: {0}")]
     Migrate(#[from] sqlx::migrate::MigrateError),
 
-    #[error("Failed to start Rocket: {0}")]
+    #[error("Rocket failed: {0}")]
     Rocket(#[from] rocket::Error),
 }
 
