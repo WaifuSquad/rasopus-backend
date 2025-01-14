@@ -7,10 +7,13 @@ RUN apk update && apk upgrade && apk add --no-cache curl musl-dev gcc
 RUN adduser -D -u 1000 rasopus
 
 # Copy source code from host
+RUN mkdir /app
 WORKDIR /app
-COPY . .
-# We can't use the cache anyways because we compile against musl. Deleting this makes chown/chmod run way faster.
-RUN rm -rf /app/target
+COPY ./src /app/src
+COPY ./migrations /app/migrations
+COPY ./Cargo.toml /app/Cargo.toml
+COPY ./Cargo.lock /app/Cargo.lock
+COPY ./rust-toolchain.toml /app/rust-toolchain.toml
 RUN chown -R rasopus:rasopus /app
 RUN chmod -R 755 /app
 
