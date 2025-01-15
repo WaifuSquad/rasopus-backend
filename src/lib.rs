@@ -1,5 +1,4 @@
 use config::{database::DatabaseConfig, rasopus::RasopusConfig, rocket_overrides::RocketOverrides};
-use lum_config::{EnvHandler, EnvironmentConfigParseError};
 use rocket::Rocket;
 use rocket_okapi::swagger_ui::*;
 use sqlx::any::AnyPoolOptions;
@@ -9,12 +8,6 @@ pub mod config;
 pub mod controller;
 pub mod database;
 pub mod macros;
-
-pub fn parse_config_from_env<IntoString: Into<String>>(
-    app_name: IntoString,
-) -> Result<RasopusConfig, EnvironmentConfigParseError> {
-    EnvHandler::new(app_name).load_config()
-}
 
 pub fn build_rocket(
     rocket_overrides: RocketOverrides,

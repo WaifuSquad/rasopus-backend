@@ -1,3 +1,4 @@
+use lum_config::{EnvHandler, EnvironmentConfigParseError};
 use rocket::serde::{Deserialize, Serialize};
 
 use super::database::DatabaseType;
@@ -15,4 +16,12 @@ pub struct RasopusConfig {
     pub database_port: u16,
     pub database_database: String,
     pub database_pool_size: u32,
+}
+
+impl RasopusConfig {
+    pub fn from_env<IntoString: Into<String>>(
+        app_name: IntoString,
+    ) -> Result<Self, EnvironmentConfigParseError> {
+        EnvHandler::new(app_name).load_config()
+    }
 }

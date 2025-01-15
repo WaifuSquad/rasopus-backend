@@ -1,5 +1,5 @@
 use anyhow::Result;
-use rasopus::{parse_config_from_env, run};
+use rasopus::{config::rasopus::RasopusConfig, run};
 
 pub static APP_NAME: &str = "Rasopus";
 pub static APP_VERSION: &str = env!("CARGO_PKG_VERSION");
@@ -9,7 +9,7 @@ async fn main() -> Result<()> {
     println!("Starting {} v{}", APP_NAME, APP_VERSION);
 
     println!("Loading Rasopus environment variables");
-    let rasopus_config = match parse_config_from_env(APP_NAME) {
+    let rasopus_config = match RasopusConfig::from_env(APP_NAME) {
         Ok(config) => config,
         Err(e) => {
             eprintln!("Failed to load Rasopus environment variables: {}", e);
