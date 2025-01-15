@@ -75,7 +75,7 @@ pub async fn run(rasopus_config: RasopusConfig) -> Result<(), RuntimeError> {
     let rocket_overrides = RocketOverrides::from(&rasopus_config);
     let rocket = build_rocket(rocket_overrides, vec![Box::new(database_pool)]);
 
-    println!("Starting Rocket");
+    println!("Launching Rocket");
     let result = rocket.launch().await;
 
     if let Err(e) = result {
