@@ -1,6 +1,6 @@
 services:
   rasopus-database:
-    image: postgres:13
+    image: postgres:17-alpine
     environment:
       - POSTGRES_USER=rasopus
       - POSTGRES_PASSWORD=postgres
