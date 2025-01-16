@@ -8,6 +8,7 @@ pub mod config;
 pub mod controller;
 pub mod database;
 pub mod macros;
+pub mod model;
 
 pub fn build_rocket(
     rocket_overrides: RocketOverrides,

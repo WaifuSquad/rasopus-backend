@@ -27,9 +27,13 @@ opt-level = 3
 [dependencies]
 anyhow = "1.0.97"
 lum_config = "0.2.0"
+chrono = { version = "0.4.39", features = ["alloc", "std", "clock", "now", "serde"] }
+num_enum = "0.7.3"
 okapi = { version = "0.7.0", features = ["impl_json_schema", "preserve_order"] }
+orion = { version = "0.17.7", features = ["serde", "alloc"] }
 rocket = { version = "0.5.1", features = ["json", "secrets"] }
 rocket_okapi = { version = "0.9.0", features = ["preserve_order", "secrets", "swagger", "uuid"] }
-sqlx = { version = "0.8.3", features = ["runtime-tokio", "tls-rustls", "postgres", "mysql", "sqlite", "any", "derive", "macros", "migrate", "uuid", "json"] }
 thiserror = "2.0.12"
+sqlx = { version = "0.8.3", features = ["runtime-tokio", "tls-rustls", "postgres", "mysql", "sqlite", "any", "derive", "macros", "migrate", "uuid", "json", "chrono"] }
 tokio = { version = "1.43.0", features = ["full"] }
+uuid = { version = "1.12.0", features = ["fast-rng", "v4"] }
