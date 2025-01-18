@@ -44,6 +44,26 @@ pub struct DbUser {
     pub created_at: i64,
 }
 
+impl DbUser {
+    async fn exists_by_role(role: Role, database_pool: &Pool<Any>) -> Result<bool, sqlx::Error> {
+        let result = sqlx::query("SELECT * FROM $1 WHERE role = $2 LIMIT 1")
+            .bind(Self::main_table_name())
+            .bind::<i16>(role.into())
+            .fetch_one(database_pool)
+            .await;
+
+        if let Err(error) = result {
+            if matches!(error, sqlx::Error::RowNotFound) {
+                return Ok(false);
+            } else {
+                return Err(error);
+            }
+        }
+
+        Ok(true)
+    }
+}
+
 #[async_trait]
 impl DbEntity for DbUser {
     type Identifier = String;
@@ -65,7 +85,7 @@ impl DbEntity for DbUser {
         identifier: &Self::Identifier,
         database_pool: &Pool<Any>,
     ) -> Result<bool, Self::ExistsError> {
-        let result = sqlx::query("SELECT 1 FROM $1 WHERE uuid = $2")
+        let result = sqlx::query("SELECT * FROM $1 WHERE uuid = $2 LIMIT 1")
             .bind(Self::main_table_name())
             .bind(identifier)
             .fetch_one(database_pool)
@@ -102,7 +122,7 @@ impl DbEntity for DbUser {
         identifier: &Self::Identifier,
         database_pool: &Pool<Any>,
     ) -> Result<Self, Self::LoadError> {
-        let db_user = sqlx::query_as("SELECT * FROM $1 WHERE uuid = $2")
+        let db_user = sqlx::query_as("SELECT * FROM $1 WHERE uuid = $2 LIMIT 1")
             .bind(Self::main_table_name())
             .bind(identifier)
             .fetch_one(database_pool)

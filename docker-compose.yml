@@ -3,7 +3,7 @@ services:
     image: postgres:17-alpine
     environment:
       - POSTGRES_USER=rasopus
-      - POSTGRES_PASSWORD=postgres
+      - POSTGRES_PASSWORD=rasopus
       - POSTGRES_DB=rasopus
     ports:
       - "5432:5432"
@@ -23,7 +23,7 @@ services:
       - ROCKET_SECRET_KEY=pnUM94/8LhhtSE1REEihKj7npG6+lvigAy4C885fIzY=
       - RASOPUS_DATABASE_TYPE=postgres
       - RASOPUS_DATABASE_USER=rasopus
-      - RASOPUS_DATABASE_PASSWORD=postgres
+      - RASOPUS_DATABASE_PASSWORD=rasopus
       - RASOPUS_DATABASE_HOST=rasopus-database
       - RASOPUS_DATABASE_PORT=5432
       - RASOPUS_DATABASE_DATABASE=rasopus
