@@ -53,6 +53,10 @@ impl DbEntity for DbUser {
     type UpdateError = sqlx::Error;
     type PersistError = sqlx::Error;
 
+    fn main_table_name() -> &'static str {
+        "users"
+    }
+
     fn get_identifier(&self) -> &Self::Identifier {
         &self.uuid
     }
@@ -61,7 +65,8 @@ impl DbEntity for DbUser {
         identifier: &Self::Identifier,
         database_pool: &Pool<Any>,
     ) -> Result<bool, Self::ExistsError> {
-        let result = sqlx::query("SELECT 1 FROM users WHERE uuid = $1")
+        let result = sqlx::query("SELECT 1 FROM $1 WHERE uuid = $2")
+            .bind(Self::main_table_name())
             .bind(identifier)
             .fetch_one(database_pool)
             .await;
@@ -79,8 +84,9 @@ impl DbEntity for DbUser {
 
     async fn create(&self, database_pool: &Pool<Any>) -> Result<(), Self::CreateError> {
         sqlx::query(
-            "INSERT INTO users (uuid, username, role, password_hash, created_at) VALUES ($1, $2, $3, $4, $5)",
+            "INSERT INTO $1 (uuid, username, role, password_hash, created_at) VALUES ($2, $3, $4, $5, $6)",
         )
+        .bind(Self::main_table_name())
         .bind(&self.uuid)
         .bind(&self.username)
         .bind(self.role)
@@ -96,7 +102,8 @@ impl DbEntity for DbUser {
         identifier: &Self::Identifier,
         database_pool: &Pool<Any>,
     ) -> Result<Self, Self::LoadError> {
-        let db_user = sqlx::query_as("SELECT * FROM users WHERE uuid = $1")
+        let db_user = sqlx::query_as("SELECT * FROM $1 WHERE uuid = $2")
+            .bind(Self::main_table_name())
             .bind(identifier)
             .fetch_one(database_pool)
             .await?;
@@ -106,8 +113,9 @@ impl DbEntity for DbUser {
 
     async fn update(&self, database_pool: &Pool<Any>) -> Result<(), Self::UpdateError> {
         sqlx::query(
-            "UPDATE users SET username = $1, role = $2, password_hash = $3, created_at = $4 WHERE uuid = $5",
+            "UPDATE $1 SET username = $2, role = $3, password_hash = $4, created_at = $5 WHERE uuid = $6",
         )
+        .bind(Self::main_table_name())
         .bind(&self.username)
         .bind(self.role)
         .bind(&self.password_hash)

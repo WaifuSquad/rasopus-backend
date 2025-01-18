@@ -17,6 +17,7 @@ pub trait DbEntity: Sized + Send {
         + From<Self::CreateError>
         + From<Self::UpdateError>;
 
+    fn main_table_name() -> &'static str;
     fn get_identifier(&self) -> &Self::Identifier;
 
     async fn exists(
