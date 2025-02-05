@@ -43,9 +43,9 @@ pub enum MayFailError {
 impl<'r> Responder<'r, 'static> for MayFailError {
     fn respond_to(self, request: &'r rocket::Request<'_>) -> rocket::response::Result<'static> {
         let status_code = match self {
-            MayFailError::A => 700,
-            MayFailError::B(_) => 701,
-            MayFailError::C { .. } => 702,
+            MayFailError::A => 460,
+            MayFailError::B(_) => 461,
+            MayFailError::C { .. } => 462,
         };
 
         status::Custom(Status::new(status_code), Json(self)).respond_to(request)

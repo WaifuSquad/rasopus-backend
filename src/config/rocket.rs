@@ -7,12 +7,12 @@ use super::rasopus::RasopusConfig;
 
 #[derive(Debug, Clone, Default, Serialize, Deserialize)]
 #[serde(crate = "rocket::serde", default)]
-pub struct RocketOverrides {
+pub struct RocketConfig {
     pub address: Option<String>,
     pub port: Option<u16>,
 }
 
-impl RocketOverrides {
+impl RocketConfig {
     pub fn apply(self, mut rocket_figment: Figment) -> Figment {
         if let Some(address) = &self.address {
             rocket_figment = rocket_figment.merge(("address", address));
@@ -26,7 +26,7 @@ impl RocketOverrides {
     }
 }
 
-impl From<RasopusConfig> for RocketOverrides {
+impl From<RasopusConfig> for RocketConfig {
     fn from(environment_config: RasopusConfig) -> Self {
         Self {
             address: environment_config.address,
@@ -35,7 +35,7 @@ impl From<RasopusConfig> for RocketOverrides {
     }
 }
 
-impl From<&RasopusConfig> for RocketOverrides {
+impl From<&RasopusConfig> for RocketConfig {
     fn from(environment_config: &RasopusConfig) -> Self {
         Self {
             address: environment_config.address.clone(),
