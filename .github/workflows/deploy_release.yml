@@ -2,13 +2,19 @@ name: Publish release
 on:
   push:
     branches: [release/**]
+
+permissions:
+  contents: read
+
 jobs:
   check_version_bump:
+    permissions:
+      contents: read
     name: Check version bump
     runs-on: ubuntu-latest
     steps:
       - name: Checkout
-        uses: actions/checkout@v2
+        uses: actions/checkout@v4
       - name: Setup Rust toolchain stable-x86_64-unknown-linux-gnu for ubuntu-latest
         uses: actions-rs/toolchain@v1
         with:
@@ -21,7 +27,7 @@ jobs:
         run: cargo search
       - name: Read crates.io version
         id: crates_io_version
-        run: echo "version=$(cargo search --limit 1 $(cargo read-manifest | jq -r .name) | grep -oP '(?<=")([0-9]+.[0-9]+.[0-9]+)(?=")')" >> $GITHUB_OUTPUT
+        run: echo "version=$(cargo search | grep -m 1 '^rasopus-backend ' | awk '{print $2}'" >> $GITHUB_OUTPUT
       - name: Parse and compare versions
         run: |
           source_version="${{ steps.source_version.outputs.version }}"
@@ -32,14 +38,18 @@ jobs:
             echo "Source branch version ($source_version) is not higher than crates.io version ($crates_io_version)."
             exit 1
           fi
+
   crates_io:
+    permissions:
+      contents: read
+      packages: write
     name: Publish crates.io
     needs: check_version_bump
     environment: CRATES_IO
     runs-on: ubuntu-latest
     steps:
       - name: Checkout
-        uses: actions/checkout@v2
+        uses: actions/checkout@v4
       - name: Setup Rust toolchain stable-x86_64-unknown-linux-gnu for ubuntu-latest
         uses: actions-rs/toolchain@v1
         with:
@@ -57,6 +67,9 @@ jobs:
         with:
           command: publish
   github:
+    permissions:
+      contents: write
+      packages: write
     name: Publish GitHub
     needs: crates_io
     permissions:
@@ -65,7 +78,7 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - name: Checkout
-        uses: actions/checkout@v2
+        uses: actions/checkout@v4
       - name: Setup Rust toolchain stable-x86_64-unknown-linux-gnu for ubuntu-latest
         uses: actions-rs/toolchain@v1
         with:
@@ -86,5 +99,30 @@ jobs:
         run: echo "version=$(cargo read-manifest | jq -r .version)" >> $GITHUB_OUTPUT
       - name: Create release
         env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }} # Provided by GitHub Actions
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: gh release create "${{ steps.version.outputs.version }}" --repo="$GITHUB_REPOSITORY" --title="Release ${{ steps.version.outputs.version }}" --generate-notes --latest "./target/package/${{ steps.crate_name.outputs.crate_name }}-${{ steps.version.outputs.version }}.crate"
+
+  publish_docker:
+    permissions:
+      contents: read
+      packages: write
+    name: Publish Docker Image
+    needs: crates_io
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@6524bf65af31da8d45b59e8c27de4bd072b392f5
+
+      - name: Log in to DockerHub
+        uses: docker/login-action@9780b0c442fbb1117ed29e0efdff1e18412f7567
+        with:
+          username: ${{ secrets.DOCKER_USERNAME }}
+          password: ${{ secrets.DOCKER_PASSWORD }}
+
+      - name: Build and push Docker image
+        run: |
+          docker build -t ${{ secrets.DOCKER_USERNAME }}/rasopus-backend:${{ steps.source_version.outputs.version }} .
+          docker push ${{ secrets.DOCKER_USERNAME }}/rasopus-backend:${{ steps.source_version.outputs.version }}
