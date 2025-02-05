@@ -9,7 +9,7 @@ use sqlx::{prelude::FromRow, Pool, Postgres};
 use thiserror::Error;
 use uuid::Uuid;
 
-use super::{DbEntity, DbEntityAdapter, DbEntityReference};
+use crate::model::{DbEntity, DbEntityAdapter, DbEntityReference};
 
 #[derive(
     Debug,

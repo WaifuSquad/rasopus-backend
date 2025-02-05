@@ -21,7 +21,6 @@ services:
       - RASOPUS_ADDRESS=0.0.0.0
       - RASOPUS_PORT=8000
       - ROCKET_SECRET_KEY=pnUM94/8LhhtSE1REEihKj7npG6+lvigAy4C885fIzY=
-      - RASOPUS_DATABASE_TYPE=postgres
       - RASOPUS_DATABASE_USER=rasopus
       - RASOPUS_DATABASE_PASSWORD=rasopus
       - RASOPUS_DATABASE_HOST=rasopus-database

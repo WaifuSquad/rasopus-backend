@@ -3,7 +3,8 @@ use std::fmt::Debug;
 use rocket::async_trait;
 use sqlx::{Pool, Postgres};
 
-pub mod user;
+pub mod entity;
+pub mod payload;
 
 #[async_trait]
 pub trait DbEntity: Sized + Send {
