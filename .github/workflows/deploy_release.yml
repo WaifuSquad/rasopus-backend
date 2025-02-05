@@ -8,7 +8,7 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - name: Checkout
-        uses: actions/checkout@v2
+        uses: actions/checkout@v4
       - name: Setup Rust toolchain stable-x86_64-unknown-linux-gnu for ubuntu-latest
         uses: actions-rs/toolchain@v1
         with:
@@ -39,7 +39,7 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - name: Checkout
-        uses: actions/checkout@v2
+        uses: actions/checkout@v4
       - name: Setup Rust toolchain stable-x86_64-unknown-linux-gnu for ubuntu-latest
         uses: actions-rs/toolchain@v1
         with:
@@ -65,7 +65,7 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - name: Checkout
-        uses: actions/checkout@v2
+        uses: actions/checkout@v4
       - name: Setup Rust toolchain stable-x86_64-unknown-linux-gnu for ubuntu-latest
         uses: actions-rs/toolchain@v1
         with:
@@ -86,5 +86,27 @@ jobs:
         run: echo "version=$(cargo read-manifest | jq -r .version)" >> $GITHUB_OUTPUT
       - name: Create release
         env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }} # Provided by GitHub Actions
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: gh release create "${{ steps.version.outputs.version }}" --repo="$GITHUB_REPOSITORY" --title="Release ${{ steps.version.outputs.version }}" --generate-notes --latest "./target/package/${{ steps.crate_name.outputs.crate_name }}-${{ steps.version.outputs.version }}.crate"
+
+  publish_docker:
+    name: Publish Docker Image
+    needs: crates_io
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v3
+
+      - name: Log in to DockerHub
+        uses: docker/login-action@v3
+        with:
+          username: ${{ secrets.DOCKER_USERNAME }}
+          password: ${{ secrets.DOCKER_PASSWORD }}
+
+      - name: Build and push Docker image
+        run: |
+          docker build -t ${{ secrets.DOCKER_USERNAME }}/rasopus-backend:${{ steps.source_version.outputs.version }} .
+          docker push ${{ secrets.DOCKER_USERNAME }}/rasopus-backend:${{ steps.source_version.outputs.version }}
