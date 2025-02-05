@@ -8,3 +8,8 @@ updates:
     target-branch: main
     schedule:
       interval: "daily"
+  - package-ecosystem: "github-actions"
+    directory: "/"
+    target-branch: main
+    schedule:
+      interval: "daily"
