@@ -1,7 +1,7 @@
 use sqlx::{
     error::DatabaseError as SqlxDatabaseError,
     migrate::{Migrate, MigrateError as SqlxMigrateError, Migrator},
-    Any, Error as SqlxError, Pool,
+    Error as SqlxError, Pool, Postgres,
 };
 use thiserror::Error;
 
@@ -18,7 +18,7 @@ pub enum CheckMigrationError {
 }
 
 pub async fn needs_migration(
-    pool: &Pool<Any>,
+    pool: &Pool<Postgres>,
     migrator: &Migrator,
 ) -> Result<bool, CheckMigrationError> {
     let all_checksums = migrator
