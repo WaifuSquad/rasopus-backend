@@ -1,8 +1,18 @@
-use config::{database::DatabaseConfig, rasopus::RasopusConfig, rocket_overrides::RocketOverrides};
+use config::{database::DatabaseConfig, rasopus::RasopusConfig, rocket::RocketConfig};
+use model::{
+    user::{
+        DbUser,
+        Role::{self, System},
+        User,
+    },
+    DbEntity,
+};
+use orion::pwhash::{hash_password, Password};
 use rocket::Rocket;
 use rocket_okapi::swagger_ui::*;
-use sqlx::any::AnyPoolOptions;
+use sqlx::postgres::PgPoolOptions;
 use thiserror::Error;
+use uuid::Uuid;
 
 pub mod config;
 pub mod controller;
@@ -11,11 +21,11 @@ pub mod macros;
 pub mod model;
 
 pub fn build_rocket(
-    rocket_overrides: RocketOverrides,
+    rocket_config: RocketConfig,
     managed_data: Vec<Box<dyn Send + Sync + 'static>>,
 ) -> Rocket<rocket::Build> {
     let mut figment = rocket::Config::figment();
-    figment = rocket_overrides.apply(figment);
+    figment = rocket_config.apply(figment);
 
     let mut rocket = rocket::custom(figment)
         .mount("/", controller::openapi_get_routes())
@@ -51,12 +61,9 @@ pub enum RuntimeError {
 }
 
 pub async fn run(rasopus_config: RasopusConfig) -> Result<(), RuntimeError> {
-    println!("Initializing database drivers");
-    sqlx::any::install_default_drivers();
-
     println!("Connecting to database");
     let database_config = DatabaseConfig::from(&rasopus_config);
-    let database_pool = AnyPoolOptions::new()
+    let database_pool = PgPoolOptions::new()
         .max_connections(database_config.pool_size)
         .connect(&database_config.to_connection_string())
         .await?;
@@ -72,9 +79,43 @@ pub async fn run(rasopus_config: RasopusConfig) -> Result<(), RuntimeError> {
         println!("Database is up to date");
     }
 
+    match DbUser::exists_any_by_role(System, &database_pool).await {
+        Ok(true) => println!("A system user exists"),
+        Ok(false) => {
+            eprintln!("No system user found");
+        }
+        Err(e) => {
+            eprintln!("Failed to check for system user: {}", e);
+            return Err(RuntimeError::DatabaseConnect(e));
+        }
+    }
+
+    let uuid = Uuid::parse_str("2bbc3970-22b6-4bcb-81e9-d38703c790e4").unwrap();
+
+    let exists = DbUser::exists(&uuid, &database_pool).await.unwrap();
+    if !exists {
+        println!("User does not exist, creating");
+        println!("Hashing password...");
+        let password = Password::from_slice(b"hi").unwrap();
+        let password_hash = hash_password(&password, 3, 1 << 17).unwrap();
+        println!("Persisting user");
+        let mut user = User::new("Test", Role::System, password_hash);
+        user.uuid = uuid;
+        let db_user = DbUser::from(user);
+        db_user.create(&database_pool).await.unwrap();
+    } else {
+        println!("User exists");
+    }
+
+    let db_user = DbUser::load(&uuid, &database_pool).await.unwrap();
+    println!("Loaded user: {:?}", db_user);
+
+    let user = User::try_from(db_user).unwrap();
+    println!("User: {:?}", user);
+
     println!("Building Rocket with Rasopus configuration");
-    let rocket_overrides = RocketOverrides::from(&rasopus_config);
-    let rocket = build_rocket(rocket_overrides, vec![Box::new(database_pool)]);
+    let rocket_config = RocketConfig::from(&rasopus_config);
+    let rocket = build_rocket(rocket_config, vec![Box::new(database_pool)]);
 
     println!("Launching Rocket");
     let result = rocket.launch().await;

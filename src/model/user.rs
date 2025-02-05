@@ -5,7 +5,7 @@ use rocket::{
     async_trait,
     serde::{Deserialize, Serialize},
 };
-use sqlx::{prelude::FromRow, Any, Pool};
+use sqlx::{prelude::FromRow, Pool, Postgres};
 use thiserror::Error;
 use uuid::Uuid;
 
@@ -37,7 +37,7 @@ pub enum Role {
 #[derive(Debug, PartialEq, Eq, Serialize, Deserialize, FromRow)]
 #[serde(crate = "rocket::serde")]
 pub struct DbUser {
-    pub uuid: String,
+    pub uuid: Uuid,
     pub username: String,
     pub role: i16,
     pub password_hash: String,
@@ -45,28 +45,28 @@ pub struct DbUser {
 }
 
 impl DbUser {
-    async fn exists_by_role(role: Role, database_pool: &Pool<Any>) -> Result<bool, sqlx::Error> {
-        let result = sqlx::query("SELECT * FROM $1 WHERE role = $2 LIMIT 1")
-            .bind(Self::main_table_name())
-            .bind::<i16>(role.into())
-            .fetch_one(database_pool)
-            .await;
+    pub async fn exists_any_by_role(
+        role: Role,
+        database_pool: &Pool<Postgres>,
+    ) -> Result<bool, sqlx::Error> {
+        let result = sqlx::query(
+            format!(
+                "SELECT * FROM {} WHERE role = $1 LIMIT 1",
+                Self::main_table_name()
+            )
+            .as_str(),
+        )
+        .bind::<i16>(role.into())
+        .fetch_optional(database_pool)
+        .await?;
 
-        if let Err(error) = result {
-            if matches!(error, sqlx::Error::RowNotFound) {
-                return Ok(false);
-            } else {
-                return Err(error);
-            }
-        }
-
-        Ok(true)
+        Ok(result.is_some())
     }
 }
 
 #[async_trait]
 impl DbEntity for DbUser {
-    type Identifier = String;
+    type Identifier = Uuid;
     type ExistsError = sqlx::Error;
     type CreateError = sqlx::Error;
     type LoadError = sqlx::Error;
@@ -83,47 +83,49 @@ impl DbEntity for DbUser {
 
     async fn exists(
         identifier: &Self::Identifier,
-        database_pool: &Pool<Any>,
+        database_pool: &Pool<Postgres>,
     ) -> Result<bool, Self::ExistsError> {
-        let result = sqlx::query("SELECT * FROM $1 WHERE uuid = $2 LIMIT 1")
-            .bind(Self::main_table_name())
+        let query = format!(
+            "SELECT * FROM {} WHERE uuid = $1 LIMIT 1",
+            Self::main_table_name()
+        );
+
+        let result = sqlx::query(&query)
             .bind(identifier)
-            .fetch_one(database_pool)
-            .await;
+            .fetch_optional(database_pool)
+            .await?;
 
-        if let Err(error) = result {
-            if matches!(error, sqlx::Error::RowNotFound) {
-                return Ok(false);
-            } else {
-                return Err(error);
-            }
-        }
-
-        Ok(true)
+        Ok(result.is_some())
     }
 
-    async fn create(&self, database_pool: &Pool<Any>) -> Result<(), Self::CreateError> {
-        sqlx::query(
-            "INSERT INTO $1 (uuid, username, role, password_hash, created_at) VALUES ($2, $3, $4, $5, $6)",
-        )
-        .bind(Self::main_table_name())
-        .bind(&self.uuid)
-        .bind(&self.username)
-        .bind(self.role)
-        .bind(&self.password_hash)
-        .bind(self.created_at)
-        .execute(database_pool)
-        .await?;
+    async fn create(&self, database_pool: &Pool<Postgres>) -> Result<(), Self::CreateError> {
+        let query = format!(
+            "INSERT INTO {} (uuid, username, role, password_hash, created_at) VALUES ($1, $2, $3, $4, $5)",
+            Self::main_table_name()
+        );
+
+        sqlx::query(&query)
+            .bind(self.uuid)
+            .bind(&self.username)
+            .bind(self.role)
+            .bind(&self.password_hash)
+            .bind(self.created_at)
+            .execute(database_pool)
+            .await?;
 
         Ok(())
     }
 
     async fn load(
         identifier: &Self::Identifier,
-        database_pool: &Pool<Any>,
+        database_pool: &Pool<Postgres>,
     ) -> Result<Self, Self::LoadError> {
-        let db_user = sqlx::query_as("SELECT * FROM $1 WHERE uuid = $2 LIMIT 1")
-            .bind(Self::main_table_name())
+        let query = format!(
+            "SELECT * FROM {} WHERE uuid = $1 LIMIT 1",
+            Self::main_table_name()
+        );
+
+        let db_user = sqlx::query_as(&query)
             .bind(identifier)
             .fetch_one(database_pool)
             .await?;
@@ -131,18 +133,20 @@ impl DbEntity for DbUser {
         Ok(db_user)
     }
 
-    async fn update(&self, database_pool: &Pool<Any>) -> Result<(), Self::UpdateError> {
-        sqlx::query(
-            "UPDATE $1 SET username = $2, role = $3, password_hash = $4, created_at = $5 WHERE uuid = $6",
-        )
-        .bind(Self::main_table_name())
-        .bind(&self.username)
-        .bind(self.role)
-        .bind(&self.password_hash)
-        .bind(self.created_at)
-        .bind(&self.uuid)
-        .execute(database_pool)
-        .await?;
+    async fn update(&self, database_pool: &Pool<Postgres>) -> Result<(), Self::UpdateError> {
+        let query = format!(
+            "UPDATE {} SET username = $1, role = $2, password_hash = $3, created_at = $4 WHERE uuid = $5",
+            Self::main_table_name()
+        );
+
+        sqlx::query(&query)
+            .bind(&self.username)
+            .bind(self.role)
+            .bind(&self.password_hash)
+            .bind(self.created_at)
+            .bind(self.uuid)
+            .execute(database_pool)
+            .await?;
 
         Ok(())
     }
@@ -151,7 +155,7 @@ impl DbEntity for DbUser {
 impl From<User> for DbUser {
     fn from(user: User) -> Self {
         Self {
-            uuid: user.uuid.to_string(),
+            uuid: user.uuid,
             username: user.username,
             role: user.role.into(),
             password_hash: user.password_hash.unprotected_as_encoded().to_string(),
@@ -163,7 +167,7 @@ impl From<User> for DbUser {
 impl From<&User> for DbUser {
     fn from(user: &User) -> Self {
         Self {
-            uuid: user.uuid.to_string(),
+            uuid: user.uuid,
             username: user.username.clone(),
             role: user.role.into(),
             password_hash: user.password_hash.unprotected_as_encoded().to_string(),
@@ -218,7 +222,7 @@ impl TryFrom<DbUser> for User {
 
     fn try_from(db_user: DbUser) -> Result<Self, Self::Error> {
         Ok(Self {
-            uuid: Uuid::try_parse(&db_user.uuid)?,
+            uuid: db_user.uuid,
             username: db_user.username,
             role: Role::try_from(db_user.role).unwrap(),
             password_hash: PasswordHash::from_encoded(&db_user.password_hash)?,
@@ -233,7 +237,7 @@ impl TryFrom<&DbUser> for User {
 
     fn try_from(db_user: &DbUser) -> Result<Self, Self::Error> {
         Ok(Self {
-            uuid: Uuid::try_parse(&db_user.uuid)?,
+            uuid: db_user.uuid,
             username: db_user.username.clone(),
             role: Role::try_from(db_user.role).unwrap(),
             password_hash: PasswordHash::from_encoded(&db_user.password_hash)?,

@@ -1,7 +1,7 @@
 use std::fmt::Debug;
 
 use rocket::async_trait;
-use sqlx::{Any, Pool};
+use sqlx::{Pool, Postgres};
 
 pub mod user;
 
@@ -22,19 +22,19 @@ pub trait DbEntity: Sized + Send {
 
     async fn exists(
         identifier: &Self::Identifier,
-        database_pool: &Pool<Any>,
+        database_pool: &Pool<Postgres>,
     ) -> Result<bool, Self::ExistsError>;
 
-    async fn create(&self, database_pool: &Pool<Any>) -> Result<(), Self::CreateError>;
+    async fn create(&self, database_pool: &Pool<Postgres>) -> Result<(), Self::CreateError>;
 
     async fn load(
         identifier: &Self::Identifier,
-        database_pool: &Pool<Any>,
+        database_pool: &Pool<Postgres>,
     ) -> Result<Self, Self::LoadError>;
 
-    async fn update(&self, database_pool: &Pool<Any>) -> Result<(), Self::UpdateError>;
+    async fn update(&self, database_pool: &Pool<Postgres>) -> Result<(), Self::UpdateError>;
 
-    async fn persist(&self, database_pool: &Pool<Any>) -> Result<(), Self::PersistError> {
+    async fn persist(&self, database_pool: &Pool<Postgres>) -> Result<(), Self::PersistError> {
         let exists = Self::exists(&self.get_identifier().clone(), database_pool).await?;
         if exists {
             self.update(database_pool).await?;
