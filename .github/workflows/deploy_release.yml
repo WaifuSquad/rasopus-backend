@@ -72,8 +72,6 @@ jobs:
       packages: write
     name: Publish GitHub
     needs: crates_io
-    permissions:
-      contents: write
     environment: GITHUB_RELEASE
     runs-on: ubuntu-latest
     steps:
