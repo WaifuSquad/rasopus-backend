@@ -22,7 +22,7 @@ jobs:
             toolchain: stable-x86_64-pc-windows-msvc
     steps:
       - name: Checkout
-        uses: actions/checkout@v2
+        uses: actions/checkout@v4
       - name: Setup Rust toolchain ${{ matrix.toolchain }} for ${{ matrix.os }}
         uses: actions-rs/toolchain@v1
         with:
