@@ -44,26 +44,6 @@ pub struct DbUser {
     pub created_at: i64,
 }
 
-impl DbUser {
-    pub async fn exists_any_by_role(
-        role: Role,
-        database_pool: &Pool<Postgres>,
-    ) -> Result<bool, sqlx::Error> {
-        let result = sqlx::query(
-            format!(
-                "SELECT * FROM {} WHERE role = $1 LIMIT 1",
-                Self::main_table_name()
-            )
-            .as_str(),
-        )
-        .bind::<i16>(role.into())
-        .fetch_optional(database_pool)
-        .await?;
-
-        Ok(result.is_some())
-    }
-}
-
 #[async_trait]
 impl DbEntity for DbUser {
     type Identifier = Uuid;
