@@ -27,12 +27,12 @@ jobs:
         run: cargo search
       - name: Read crates.io version
         id: crates_io_version
-        run: echo "version=$(cargo search | grep -m 1 '^rasopus-backend ' | awk '{print $2}'" >> $GITHUB_OUTPUT
+        run: echo "version=$(cargo search --limit 1 $(cargo read-manifest | jq -r .name) | awk '{print $3}' |  tr -d '"') >> $GITHUB_OUTPUT
       - name: Parse and compare versions
         run: |
           source_version="${{ steps.source_version.outputs.version }}"
           crates_io_version="${{ steps.crates_io_version.outputs.version }}"
-          if [ "$(printf '%s\n' "$crates_io_version" "$source_version" | sort -V | head -n1)" != "$source_version" ]; then
+          if [ "$(printf '%s\n%s\n' "$source_version" "$crates_io_version" | sort -V | tail -n1)" = "$source_version" ] && [ "$source_version" != "$crates_io_version" ]; then
             echo "Source branch version ($source_version) is higher than crates.io version ($crates_io_version)."
           else
             echo "Source branch version ($source_version) is not higher than crates.io version ($crates_io_version)."
