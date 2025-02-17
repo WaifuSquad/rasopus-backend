@@ -77,6 +77,24 @@ impl UserService {
         Ok(user)
     }
 
+    pub async fn exists_any_user_by_role(
+        &self,
+        role: Role,
+        database_pool: &Pool<Postgres>,
+    ) -> Result<bool, sqlx::Error> {
+        let query = format!(
+            "SELECT * FROM {} WHERE role = $1 LIMIT 1",
+            DbUser::main_table_name()
+        );
+
+        let result = sqlx::query(&query)
+            .bind::<i16>(role.into())
+            .fetch_optional(database_pool)
+            .await?;
+
+        Ok(result.is_some())
+    }
+
     pub async fn exists(
         &self,
         user: User,

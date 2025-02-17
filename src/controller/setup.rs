@@ -11,7 +11,7 @@ use sqlx::{Pool, Postgres};
 use crate::{
     impl_okapi_json_responder,
     model::payload::setup::{SetupGetErrorResponse, SetupGetResponse},
-    service::setup::SetupService,
+    service::{setup::SetupService, user::UserService},
 };
 
 impl<'r> Responder<'r, 'static> for SetupGetResponse {
@@ -48,10 +48,13 @@ impl_okapi_json_responder!(SetupGetErrorResponse, {
 #[openapi]
 #[get("/setup")]
 pub async fn setup(
+    user_service: &State<UserService>,
     database_pool: &State<Pool<Postgres>>,
     setup_service: &State<SetupService>,
 ) -> Result<SetupGetResponse, SetupGetErrorResponse> {
-    let needs_setup = setup_service.needs_setup(database_pool).await?;
+    let needs_setup = setup_service
+        .needs_setup(user_service, database_pool)
+        .await?;
 
     Ok(SetupGetResponse { needs_setup })
 }
