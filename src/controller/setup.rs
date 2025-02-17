@@ -30,7 +30,7 @@ impl_okapi_json_responder!(SetupGetResponse, {
 impl<'r> Responder<'r, 'static> for SetupGetErrorResponse {
     fn respond_to(self, request: &'r Request<'_>) -> rocket::response::Result<'static> {
         let status_code = match self {
-            Self::SetupCheck(_) => Status::InternalServerError.code,
+            Self::Database(_) => Status::InternalServerError.code,
         };
 
         status::Custom(Status::new(status_code), Json(self)).respond_to(request)
@@ -40,7 +40,7 @@ impl<'r> Responder<'r, 'static> for SetupGetErrorResponse {
 impl_okapi_json_responder!(SetupGetErrorResponse, {
     "500" => {
         description: "The backend's setup status could not be retrieved.",
-        example: serde_json::json!(SetupGetErrorResponse::SetupCheck("An error occurred while checking the backend's setup status: A database error occurred: Lost connection".to_string())),
+        example: serde_json::json!(SetupGetErrorResponse::Database("A database error occurred: Lost connection".to_string())),
     },
 });
 
