@@ -44,6 +44,15 @@ pub enum UpdateError {
     Database(#[from] sqlx::Error),
 }
 
+#[derive(Debug, Error)]
+pub enum DeleteError {
+    #[error("User not found")]
+    NotFound,
+
+    #[error("Database error: {0}")]
+    Database(#[from] sqlx::Error),
+}
+
 impl UserService {
     pub fn new() -> Self {
         Self {}
@@ -102,6 +111,21 @@ impl UserService {
         Ok(())
     }
 
+    pub async fn delete(
+        &self,
+        user: User,
+        database_pool: &Pool<Postgres>,
+    ) -> Result<(), DeleteError> {
+        if !DbUser::exists(&user.uuid, database_pool).await? {
+            return Err(DeleteError::NotFound);
+        }
+
+        let db_user = DbUser::from(&user);
+        db_user.delete(database_pool).await?;
+
+        Ok(())
+    }
+
     pub async fn persist(
         &self,
         user: User,
@@ -121,6 +145,7 @@ impl DbEntity for DbUser {
     type CreateError = sqlx::Error;
     type LoadError = sqlx::Error;
     type UpdateError = sqlx::Error;
+    type DeleteError = sqlx::Error;
     type PersistError = sqlx::Error;
 
     fn main_table_name() -> &'static str {
@@ -194,6 +219,17 @@ impl DbEntity for DbUser {
             .bind(self.role)
             .bind(&self.password_hash)
             .bind(self.created_at)
+            .bind(self.uuid)
+            .execute(database_pool)
+            .await?;
+
+        Ok(())
+    }
+
+    async fn delete(&self, database_pool: &Pool<Postgres>) -> Result<(), Self::DeleteError> {
+        let query = format!("DELETE FROM {} WHERE uuid = $1", Self::main_table_name());
+
+        sqlx::query(&query)
             .bind(self.uuid)
             .execute(database_pool)
             .await?;
