@@ -2,8 +2,6 @@ use rocket::serde::{Deserialize, Serialize};
 use rocket_okapi::JsonSchema;
 use thiserror::Error;
 
-use crate::service::setup::SetupCheckError;
-
 /// A response containing information about the backend's setup status.
 #[derive(Debug, Serialize, Deserialize, JsonSchema)]
 #[serde(crate = "rocket::serde")]
@@ -18,13 +16,13 @@ pub struct SetupGetResponse {
 #[serde(crate = "rocket::serde")]
 #[schemars(crate = "okapi::schemars")]
 pub enum SetupGetErrorResponse {
-    /// An error occurred while interacting with the SetupService.
-    #[error("An error occurred while checking the backend's setup status: {0}")]
-    SetupCheck(String),
+    /// An error occurred while interacting with the database.
+    #[error("An error occurred while interacting with the database: {0}")]
+    Database(String),
 }
 
-impl From<SetupCheckError> for SetupGetErrorResponse {
-    fn from(error: SetupCheckError) -> Self {
-        Self::SetupCheck(error.to_string())
+impl From<sqlx::Error> for SetupGetErrorResponse {
+    fn from(error: sqlx::Error) -> Self {
+        Self::Database(error.to_string())
     }
 }
