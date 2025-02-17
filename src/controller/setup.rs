@@ -11,7 +11,7 @@ use sqlx::{Pool, Postgres};
 use crate::{
     impl_okapi_json_responder,
     model::payload::setup::{SetupGetErrorResponse, SetupGetResponse},
-    service::{setup::SetupService, user::UserService},
+    service::{SetupService, UserService},
 };
 
 impl<'r> Responder<'r, 'static> for SetupGetResponse {

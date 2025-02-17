@@ -1,7 +1,7 @@
 use config::{database::DatabaseConfig, rasopus::RasopusConfig, rocket::RocketConfig};
 use rocket::Rocket;
 use rocket_okapi::swagger_ui::*;
-use service::setup::SetupService;
+use service::ServiceCollection;
 use sqlx::{postgres::PgPoolOptions, Pool, Postgres};
 use thiserror::Error;
 
@@ -15,7 +15,7 @@ pub mod service;
 pub fn build_rocket(
     rocket_config: RocketConfig,
     database_pool: Pool<Postgres>,
-    setup_service: SetupService,
+    service_collection: ServiceCollection,
 ) -> Rocket<rocket::Build> {
     let mut figment = rocket::Config::figment();
     figment = rocket_config.apply(figment);
@@ -32,7 +32,8 @@ pub fn build_rocket(
         );
 
     rocket = rocket.manage(database_pool);
-    rocket = rocket.manage(setup_service);
+    rocket = rocket.manage(service_collection.user);
+    rocket = rocket.manage(service_collection.setup);
 
     rocket
 }
@@ -72,11 +73,11 @@ pub async fn run(rasopus_config: RasopusConfig) -> Result<(), RuntimeError> {
     }
 
     println!("Initializing services");
-    let setup_service = SetupService::new();
+    let service_collection = ServiceCollection::default();
 
     println!("Building Rocket with Rasopus configuration");
     let rocket_config = RocketConfig::from(&rasopus_config);
-    let rocket = build_rocket(rocket_config, database_pool, setup_service);
+    let rocket = build_rocket(rocket_config, database_pool, service_collection);
 
     println!("Launching Rocket");
     let result = rocket.launch().await;
