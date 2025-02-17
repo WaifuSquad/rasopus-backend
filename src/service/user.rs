@@ -15,9 +15,6 @@ use crate::model::{
 pub struct UserService;
 
 #[derive(Debug, Error)]
-pub enum GenerateError {}
-
-#[derive(Debug, Error)]
 pub enum CreateError {
     #[error("User already exists")]
     AlreadyExists,
@@ -56,6 +53,28 @@ pub enum DeleteError {
 impl UserService {
     pub fn new() -> Self {
         Self {}
+    }
+
+    pub async fn generate(
+        &self,
+        username: String,
+        password: &str,
+        role: Role,
+    ) -> Result<User, UnknownCryptoError> {
+        let password = orion::pwhash::Password::from_slice(password.as_bytes())?;
+        let password_hash = orion::pwhash::hash_password(&password, 3, 1 << 16)?;
+
+        let uuid = Uuid::new_v4();
+        let created_at = chrono::Utc::now();
+        let user = User {
+            uuid,
+            username,
+            role,
+            password_hash,
+            created_at,
+        };
+
+        Ok(user)
     }
 
     pub async fn exists(
