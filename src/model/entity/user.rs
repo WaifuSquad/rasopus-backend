@@ -11,6 +11,7 @@ use uuid::Uuid;
 
 use crate::model::{DbEntity, DbEntityAdapter, DbEntityReference};
 
+/// An enum representing the possible roles a user can have.
 #[derive(
     Debug,
     Clone,
@@ -28,19 +29,34 @@ use crate::model::{DbEntity, DbEntityAdapter, DbEntityReference};
 #[repr(i16)]
 #[serde(crate = "rocket::serde")]
 pub enum Role {
+    /// The system role, which has the highest level of access.
     System = 0,
+
+    /// The admin role, which has lower access than the system role, but higher access than the user role.
     Admin = 1,
+
+    /// The user role, which has the lowest level of access.
     #[default]
     User = 2,
 }
 
+/// The database representation of a user.
 #[derive(Debug, PartialEq, Eq, Serialize, Deserialize, FromRow)]
 #[serde(crate = "rocket::serde")]
 pub struct DbUser {
+    /// The user's UUID.
     pub uuid: Uuid,
+
+    /// The user's username.
     pub username: String,
+
+    /// The user's role, represented as a 16-bit signed integer.
     pub role: i16,
+
+    /// The user's password hash.
     pub password_hash: String,
+
+    /// The timestamp at which the user was created, represented as a 64-bit signed integer.
     pub created_at: i64,
 }
 
@@ -156,13 +172,23 @@ impl From<&User> for DbUser {
     }
 }
 
+/// A user
 #[derive(Debug, PartialEq, Eq, Serialize, Deserialize)]
 #[serde(crate = "rocket::serde")]
 pub struct User {
+    /// The user's UUID.
     pub uuid: Uuid,
+
+    /// The user's username.
     pub username: String,
+
+    /// The user's role.
     pub role: Role,
+
+    /// The user's password hash.
     pub password_hash: PasswordHash,
+
+    /// The timestamp at which the user was created.
     pub created_at: DateTime<Utc>,
 }
 
@@ -182,17 +208,22 @@ impl User {
     }
 }
 
+/// An error that can occur while trying to unadapt a User from a DbUser.
 #[derive(Debug, Error)]
 pub enum UnadaptUserError {
+    /// Failed to parse the UUID.
     #[error("Failed to parse UUID: {0}")]
     UuidParse(#[from] uuid::Error),
 
+    /// Failed to parse the role.
     #[error("Failed to parse role: {0}")]
     RoleParse(#[from] TryFromPrimitiveError<Role>),
 
+    /// Failed to parse the password hash.
     #[error("Failed to parse password hash: {0}")]
     PasswordHashParse(#[from] UnknownCryptoError),
 
+    /// Failed to parse the timestamp.
     #[error("The timestamp was out of range: {0}")]
     TimestampParse(i64),
 }
