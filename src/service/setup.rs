@@ -6,7 +6,7 @@ use crate::model::{
 };
 
 #[derive(Debug, Default)]
-pub struct SetupService {}
+pub struct SetupService;
 
 impl SetupService {
     pub fn new() -> Self {
