@@ -13,6 +13,7 @@ pub trait DbEntity: Sized + Send {
     type CreateError: Debug;
     type LoadError: Debug;
     type UpdateError: Debug;
+    type DeleteError: Debug;
     type PersistError: Debug
         + From<Self::ExistsError>
         + From<Self::CreateError>
@@ -34,6 +35,8 @@ pub trait DbEntity: Sized + Send {
     ) -> Result<Self, Self::LoadError>;
 
     async fn update(&self, database_pool: &Pool<Postgres>) -> Result<(), Self::UpdateError>;
+
+    async fn delete(&self, database_pool: &Pool<Postgres>) -> Result<(), Self::DeleteError>;
 
     async fn persist(&self, database_pool: &Pool<Postgres>) -> Result<(), Self::PersistError> {
         let exists = Self::exists(&self.get_identifier().clone(), database_pool).await?;
