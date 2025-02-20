@@ -7,8 +7,8 @@ use thiserror::Error;
 use uuid::Uuid;
 
 use crate::model::{
-    entity::user::{DbUser, Role, User},
     DbEntity, DbEntityAdapter, DbEntityReference,
+    entity::user::{DbUser, Role, User},
 };
 
 #[derive(Debug, Default)]

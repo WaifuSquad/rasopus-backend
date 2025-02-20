@@ -2,7 +2,7 @@ use config::{database::DatabaseConfig, rasopus::RasopusConfig, rocket::RocketCon
 use rocket::Rocket;
 use rocket_okapi::swagger_ui::*;
 use service::ServiceCollection;
-use sqlx::{postgres::PgPoolOptions, Pool, Postgres};
+use sqlx::{Pool, Postgres, postgres::PgPoolOptions};
 use thiserror::Error;
 
 pub mod config;

@@ -1,11 +1,7 @@
 use sqlx::{
-    Any, Error as SqlxError, Pool,
+    Error as SqlxError, Pool, Postgres,
     error::DatabaseError as SqlxDatabaseError,
     migrate::{Migrate, MigrateError as SqlxMigrateError, Migrator},
-<<<<<<< HEAD
-=======
-    Error as SqlxError, Pool, Postgres,
->>>>>>> 07cf900 (WAIFU-28: refactor: configs, models)
 };
 use thiserror::Error;
 

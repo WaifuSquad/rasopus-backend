@@ -1,9 +1,8 @@
 use rocket::{
-    get,
+    Request, State, get,
     http::Status,
-    response::{status, Responder},
-    serde::json::{serde_json, Json},
-    Request, State,
+    response::{Responder, status},
+    serde::json::{Json, serde_json},
 };
 use rocket_okapi::openapi;
 use sqlx::{Pool, Postgres};
