@@ -3,12 +3,12 @@
 
 version: 2
 updates:
-  - package-ecosystem: "cargo"
+  - package-ecosystem: "github-actions"
     directory: "/"
     target-branch: main
     schedule:
       interval: "daily"
-  - package-ecosystem: "github-actions"
+  - package-ecosystem: "cargo"
     directory: "/"
     target-branch: main
     schedule:
