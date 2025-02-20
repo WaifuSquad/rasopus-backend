@@ -1,8 +1,8 @@
 use rocket::{
     get,
-    serde::{json::Json, Deserialize, Serialize},
+    serde::{Deserialize, Serialize, json::Json},
 };
-use rocket_okapi::{openapi, JsonSchema};
+use rocket_okapi::{JsonSchema, openapi};
 
 /// This is how a struct looks like
 #[derive(Debug, PartialEq, Eq, Clone, Copy, Serialize, Deserialize, JsonSchema)]

@@ -1,7 +1,7 @@
 use sqlx::{
+    Any, Error as SqlxError, Pool,
     error::DatabaseError as SqlxDatabaseError,
     migrate::{Migrate, MigrateError as SqlxMigrateError, Migrator},
-    Any, Error as SqlxError, Pool,
 };
 use thiserror::Error;
 

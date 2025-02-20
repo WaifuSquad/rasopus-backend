@@ -1,8 +1,8 @@
 use rocket::{
     get,
-    serde::{json::Json, Deserialize, Serialize},
+    serde::{Deserialize, Serialize, json::Json},
 };
-use rocket_okapi::{openapi, JsonSchema};
+use rocket_okapi::{JsonSchema, openapi};
 
 /// MayNotFind Found Response
 #[derive(Debug, Serialize, Deserialize, JsonSchema)]

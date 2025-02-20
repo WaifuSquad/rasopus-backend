@@ -9,7 +9,7 @@ macro_rules! impl_okapi_json_responder {
         ),* $(,)?
     }) => {
         impl rocket_okapi::response::OpenApiResponderInner for $type {
-            fn responses(gen: &mut rocket_okapi::gen::OpenApiGenerator) -> rocket_okapi::Result<okapi::openapi3::Responses> {
+            fn responses(generator: &mut rocket_okapi::r#gen::OpenApiGenerator) -> rocket_okapi::Result<okapi::openapi3::Responses> {
                 Ok(okapi::openapi3::Responses {
                     responses: okapi::map! {
                         $(
@@ -18,7 +18,7 @@ macro_rules! impl_okapi_json_responder {
                                 content: okapi::map! {
                                     "application/json".to_string() => {
                                         let media_type = okapi::openapi3::MediaType {
-                                            schema: Some(gen.json_schema::<$type>()),$(
+                                            schema: Some(generator.json_schema::<$type>()),$(
                                                 example: Some($example),
                                             )?
                                             ..Default::default()
