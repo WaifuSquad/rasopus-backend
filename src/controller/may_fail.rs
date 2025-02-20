@@ -1,13 +1,13 @@
 use rocket::{
     get,
     http::Status,
-    response::{status, Responder},
+    response::{Responder, status},
     serde::{
-        json::{serde_json, Json},
         Deserialize, Serialize,
+        json::{Json, serde_json},
     },
 };
-use rocket_okapi::{openapi, JsonSchema};
+use rocket_okapi::{JsonSchema, openapi};
 use thiserror::Error;
 
 use crate::impl_okapi_json_responder;
