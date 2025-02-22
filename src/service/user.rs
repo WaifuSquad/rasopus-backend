@@ -1,6 +1,9 @@
 use chrono::DateTime;
 use num_enum::TryFromPrimitiveError;
-use orion::{errors::UnknownCryptoError, pwhash::PasswordHash};
+use orion::{
+    errors::UnknownCryptoError,
+    pwhash::{self, Password, PasswordHash},
+};
 use rocket::async_trait;
 use sqlx::{Pool, Postgres};
 use thiserror::Error;
@@ -11,8 +14,17 @@ use crate::model::{
     entity::user::{DbUser, Role, User},
 };
 
-#[derive(Debug, Default)]
-pub struct UserService;
+#[derive(Debug, Error)]
+pub enum GenerateError {
+    #[error("Cryptography error: {0}")]
+    Cryptography(#[from] UnknownCryptoError),
+}
+
+#[derive(Debug, Error)]
+pub enum ExistsError {
+    #[error("Database error: {0}")]
+    Database(#[from] sqlx::Error),
+}
 
 #[derive(Debug, Error)]
 pub enum CreateError {
@@ -29,7 +41,7 @@ pub enum LoadError {
     Database(#[from] sqlx::Error),
 
     #[error("Failed to unadapt user from database user: {0}")]
-    AdaptError(#[from] UnadaptUserError),
+    Unadapt(#[from] UnadaptUserError),
 }
 
 #[derive(Debug, Error)]
@@ -50,6 +62,15 @@ pub enum DeleteError {
     Database(#[from] sqlx::Error),
 }
 
+#[derive(Debug, Error)]
+pub enum PersistError {
+    #[error("Database error: {0}")]
+    Database(#[from] sqlx::Error),
+}
+
+#[derive(Debug, Default)]
+pub struct UserService;
+
 impl UserService {
     pub fn new() -> Self {
         Self {}
@@ -60,9 +81,9 @@ impl UserService {
         username: String,
         password: &str,
         role: Role,
-    ) -> Result<User, UnknownCryptoError> {
-        let password = orion::pwhash::Password::from_slice(password.as_bytes())?;
-        let password_hash = orion::pwhash::hash_password(&password, 3, 1 << 16)?;
+    ) -> Result<User, GenerateError> {
+        let password = Password::from_slice(password.as_bytes())?;
+        let password_hash = pwhash::hash_password(&password, 3, 1 << 16)?;
 
         let uuid = Uuid::new_v4();
         let created_at = chrono::Utc::now();
@@ -81,7 +102,7 @@ impl UserService {
         &self,
         role: Role,
         database_pool: &Pool<Postgres>,
-    ) -> Result<bool, sqlx::Error> {
+    ) -> Result<bool, ExistsError> {
         let query = format!(
             "SELECT * FROM {} WHERE role = $1 LIMIT 1",
             DbUser::main_table_name()
@@ -99,8 +120,10 @@ impl UserService {
         &self,
         user: User,
         database_pool: &Pool<Postgres>,
-    ) -> Result<bool, sqlx::Error> {
-        DbUser::exists(&user.uuid, database_pool).await
+    ) -> Result<bool, ExistsError> {
+        let exists = DbUser::exists(&user.uuid, database_pool).await?;
+
+        Ok(exists)
     }
 
     pub async fn create(
@@ -167,7 +190,7 @@ impl UserService {
         &self,
         user: User,
         database_pool: &Pool<Postgres>,
-    ) -> Result<(), sqlx::Error> {
+    ) -> Result<(), PersistError> {
         let db_user = DbUser::from(&user);
         db_user.persist(database_pool).await?;
 
