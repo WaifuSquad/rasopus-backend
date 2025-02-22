@@ -29,7 +29,7 @@ impl_okapi_json_responder!(SetupGetResponse, {
 impl<'r> Responder<'r, 'static> for SetupGetErrorResponse {
     fn respond_to(self, request: &'r Request<'_>) -> rocket::response::Result<'static> {
         let status_code = match self {
-            Self::Database(_) => Status::InternalServerError.code,
+            Self::SetupCheckError(_) => Status::InternalServerError.code,
         };
 
         status::Custom(Status::new(status_code), Json(self)).respond_to(request)
@@ -39,7 +39,7 @@ impl<'r> Responder<'r, 'static> for SetupGetErrorResponse {
 impl_okapi_json_responder!(SetupGetErrorResponse, {
     "500" => {
         description: "The backend's setup status could not be retrieved.",
-        example: serde_json::json!(SetupGetErrorResponse::Database("A database error occurred: Lost connection".to_string())),
+        example: serde_json::json!(SetupGetErrorResponse::SetupCheckError("The user service returned an error while checking if a system user exists: Database error: pool timed out while waiting for an open connection".to_string())),
     },
 });
 
@@ -48,8 +48,8 @@ impl_okapi_json_responder!(SetupGetErrorResponse, {
 #[get("/setup")]
 pub async fn setup(
     user_service: &State<UserService>,
-    database_pool: &State<Pool<Postgres>>,
     setup_service: &State<SetupService>,
+    database_pool: &State<Pool<Postgres>>,
 ) -> Result<SetupGetResponse, SetupGetErrorResponse> {
     let needs_setup = setup_service
         .needs_setup(user_service, database_pool)
