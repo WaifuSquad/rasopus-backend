@@ -8,11 +8,14 @@ use uuid::Uuid;
 
 use crate::{
     adapter::user::UnadaptUserError,
+    config::user_service::UserServiceConfig,
     model::{
         DbEntity,
         entity::user::{DbUser, Role, User},
     },
 };
+
+const BYTES_PER_MB: u32 = 1024 * 1024;
 
 #[derive(Debug, Error)]
 pub enum GenerateError {
@@ -71,12 +74,14 @@ pub enum PersistError {
     Database(#[from] sqlx::Error),
 }
 
-#[derive(Debug, Default)]
-pub struct UserService;
+#[derive(Debug)]
+pub struct UserService {
+    config: UserServiceConfig,
+}
 
 impl UserService {
-    pub fn new() -> Self {
-        Self {}
+    pub fn new(config: UserServiceConfig) -> Self {
+        Self { config }
     }
 
     pub async fn generate(
@@ -88,9 +93,12 @@ impl UserService {
         if password.is_empty() {
             return Err(GenerateError::EmptyPassword);
         }
+        let mb = self.config.argon2_memory_mib;
+        let bytes = mb * BYTES_PER_MB / 1024; // We have to convert back from MiB to KiB because orion expects KiB
+        let iterations = self.config.argon2_iterations;
 
         let password = Password::from_slice(password.as_bytes())?;
-        let password_hash = pwhash::hash_password(&password, 3, 1 << 16)?;
+        let password_hash = pwhash::hash_password(&password, iterations, bytes)?;
 
         let uuid = Uuid::new_v4();
         let created_at = chrono::Utc::now();

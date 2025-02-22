@@ -74,7 +74,7 @@ pub async fn run(rasopus_config: RasopusConfig) -> Result<(), RuntimeError> {
     }
 
     println!("Initializing services");
-    let service_collection = ServiceCollection::default();
+    let service_collection = ServiceCollection::new(&rasopus_config);
 
     println!("Building Rocket with Rasopus configuration");
     let rocket_config = RocketConfig::from(&rasopus_config);
