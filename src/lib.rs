@@ -5,6 +5,7 @@ use service::ServiceCollection;
 use sqlx::{Pool, Postgres, postgres::PgPoolOptions};
 use thiserror::Error;
 
+pub mod adapter;
 pub mod config;
 pub mod controller;
 pub mod database;
