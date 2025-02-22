@@ -16,6 +16,9 @@ use crate::{
 
 #[derive(Debug, Error)]
 pub enum GenerateError {
+    #[error("The given password was empty")]
+    EmptyPassword,
+
     #[error("Cryptography error: {0}")]
     Cryptography(#[from] UnknownCryptoError),
 }
@@ -82,6 +85,10 @@ impl UserService {
         password: &str,
         role: Role,
     ) -> Result<User, GenerateError> {
+        if password.is_empty() {
+            return Err(GenerateError::EmptyPassword);
+        }
+
         let password = Password::from_slice(password.as_bytes())?;
         let password_hash = pwhash::hash_password(&password, 3, 1 << 16)?;
 
