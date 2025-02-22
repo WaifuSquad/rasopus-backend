@@ -19,6 +19,10 @@ pub struct RasopusConfig {
     pub database_port: u16,
     pub database_database: String,
     pub database_pool_size: u32,
+
+    //UserService
+    pub argon2_iterations: Option<u32>,
+    pub argon2_memory_mib: Option<u32>,
 }
 
 impl RasopusConfig {
