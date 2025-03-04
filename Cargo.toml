@@ -25,7 +25,7 @@ lto = false
 opt-level = 3
 
 [dependencies]
-anyhow = "1.0.95"
+anyhow = "1.0.97"
 lum_config = "0.2.0"
 okapi = { version = "0.7.0", features = ["impl_json_schema", "preserve_order"] }
 rocket = { version = "0.5.1", features = ["json", "secrets"] }
