@@ -22,6 +22,7 @@ pkgs.mkShell {
     mkdir -p "$DATA_DIR/shell"
 
     rustup default stable
+    rustup toolchain install
     rustup update
     cargo fetch
 
