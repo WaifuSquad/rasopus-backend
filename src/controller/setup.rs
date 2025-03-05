@@ -26,10 +26,10 @@ use crate::{
 pub async fn setup_get(
     user_service: &State<UserService>,
     setup_service: &State<SetupService>,
-    database_pool: &State<Pool<Postgres>>,
+    postgres_pool: &State<Pool<Postgres>>,
 ) -> Result<SetupGetResponse, SetupGetErrorResponse> {
     let needs_setup = setup_service
-        .needs_setup(user_service, database_pool)
+        .needs_setup(user_service, postgres_pool)
         .await?;
 
     Ok(SetupGetResponse { needs_setup })
@@ -72,10 +72,10 @@ pub async fn setup_post(
     payload: Json<SetupPostPayload>,
     setup_service: &State<SetupService>,
     user_service: &State<UserService>,
-    database_pool: &State<Pool<Postgres>>,
+    postgres_pool: &State<Pool<Postgres>>,
 ) -> Result<SetupPostResponse, SetupPostErrorResponse> {
     let needs_setup = setup_service
-        .needs_setup(user_service, database_pool)
+        .needs_setup(user_service, postgres_pool)
         .await?;
 
     if !needs_setup {
@@ -88,7 +88,7 @@ pub async fn setup_post(
         .generate(username, &password, Role::System)
         .await?;
 
-    user_service.create(&user, database_pool).await?;
+    user_service.create(&user, postgres_pool).await?;
 
     Ok(SetupPostResponse {})
 }

@@ -24,29 +24,29 @@ pub trait DbEntity: Sized + Send {
 
     async fn exists(
         identifier: &Self::Identifier,
-        database_pool: &Pool<Postgres>,
+        postgres_pool: &Pool<Postgres>,
     ) -> Result<bool, Self::ExistsError>;
 
-    async fn create(&self, database_pool: &Pool<Postgres>) -> Result<(), Self::CreateError>;
+    async fn create(&self, postgres_pool: &Pool<Postgres>) -> Result<(), Self::CreateError>;
 
     async fn load(
         identifier: &Self::Identifier,
-        database_pool: &Pool<Postgres>,
+        postgres_pool: &Pool<Postgres>,
     ) -> Result<Self, Self::LoadError>;
 
-    async fn update(&self, database_pool: &Pool<Postgres>) -> Result<(), Self::UpdateError>;
+    async fn update(&self, postgres_pool: &Pool<Postgres>) -> Result<(), Self::UpdateError>;
 
     async fn delete(
         identifier: &Self::Identifier,
-        database_pool: &Pool<Postgres>,
+        postgres_pool: &Pool<Postgres>,
     ) -> Result<(), Self::DeleteError>;
 
-    async fn persist(&self, database_pool: &Pool<Postgres>) -> Result<(), Self::PersistError> {
-        let exists = Self::exists(&self.get_identifier().clone(), database_pool).await?;
+    async fn persist(&self, postgres_pool: &Pool<Postgres>) -> Result<(), Self::PersistError> {
+        let exists = Self::exists(&self.get_identifier().clone(), postgres_pool).await?;
         if exists {
-            self.update(database_pool).await?;
+            self.update(postgres_pool).await?;
         } else {
-            self.create(database_pool).await?;
+            self.create(postgres_pool).await?;
         }
 
         Ok(())

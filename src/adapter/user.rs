@@ -33,7 +33,7 @@ impl DbEntity for DbUser {
 
     async fn exists(
         identifier: &Self::Identifier,
-        database_pool: &Pool<Postgres>,
+        postgres_pool: &Pool<Postgres>,
     ) -> Result<bool, Self::ExistsError> {
         let query = format!(
             "SELECT * FROM {} WHERE uuid = $1 LIMIT 1",
@@ -42,13 +42,13 @@ impl DbEntity for DbUser {
 
         let result = sqlx::query(&query)
             .bind(identifier)
-            .fetch_optional(database_pool)
+            .fetch_optional(postgres_pool)
             .await?;
 
         Ok(result.is_some())
     }
 
-    async fn create(&self, database_pool: &Pool<Postgres>) -> Result<(), Self::CreateError> {
+    async fn create(&self, postgres_pool: &Pool<Postgres>) -> Result<(), Self::CreateError> {
         let query = format!(
             "INSERT INTO {} (uuid, username, role, password_hash, created_at) VALUES ($1, $2, $3, $4, $5)",
             Self::main_table_name()
@@ -60,7 +60,7 @@ impl DbEntity for DbUser {
             .bind(self.role)
             .bind(&self.password_hash)
             .bind(self.created_at)
-            .execute(database_pool)
+            .execute(postgres_pool)
             .await?;
 
         Ok(())
@@ -68,7 +68,7 @@ impl DbEntity for DbUser {
 
     async fn load(
         identifier: &Self::Identifier,
-        database_pool: &Pool<Postgres>,
+        postgres_pool: &Pool<Postgres>,
     ) -> Result<Self, Self::LoadError> {
         let query = format!(
             "SELECT * FROM {} WHERE uuid = $1 LIMIT 1",
@@ -77,13 +77,13 @@ impl DbEntity for DbUser {
 
         let db_user = sqlx::query_as(&query)
             .bind(identifier)
-            .fetch_one(database_pool)
+            .fetch_one(postgres_pool)
             .await?;
 
         Ok(db_user)
     }
 
-    async fn update(&self, database_pool: &Pool<Postgres>) -> Result<(), Self::UpdateError> {
+    async fn update(&self, postgres_pool: &Pool<Postgres>) -> Result<(), Self::UpdateError> {
         let query = format!(
             "UPDATE {} SET username = $1, role = $2, password_hash = $3, created_at = $4 WHERE uuid = $5",
             Self::main_table_name()
@@ -95,7 +95,7 @@ impl DbEntity for DbUser {
             .bind(&self.password_hash)
             .bind(self.created_at)
             .bind(self.uuid)
-            .execute(database_pool)
+            .execute(postgres_pool)
             .await?;
 
         Ok(())
@@ -103,13 +103,13 @@ impl DbEntity for DbUser {
 
     async fn delete(
         identifier: &Self::Identifier,
-        database_pool: &Pool<Postgres>,
+        postgres_pool: &Pool<Postgres>,
     ) -> Result<(), Self::DeleteError> {
         let query = format!("DELETE FROM {} WHERE uuid = $1", Self::main_table_name());
 
         sqlx::query(&query)
             .bind(identifier)
-            .execute(database_pool)
+            .execute(postgres_pool)
             .await?;
 
         Ok(())
