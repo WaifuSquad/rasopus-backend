@@ -9,6 +9,7 @@ services:
       - "5432:5432"
     volumes:
       - /tmp/rasopus_postgres_data:/var/lib/postgresql/data
+
   rasopus-backend:
     depends_on:
       - rasopus-database
