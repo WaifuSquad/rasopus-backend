@@ -162,7 +162,7 @@ impl TryFrom<DbUser> for User {
         Ok(Self {
             uuid: db_user.uuid,
             username: db_user.username,
-            role: Role::try_from(db_user.role).unwrap(),
+            role: Role::try_from(db_user.role)?,
             password_hash: PasswordHash::from_encoded(&db_user.password_hash)?,
             created_at: DateTime::from_timestamp(db_user.created_at, 0)
                 .ok_or(UnadaptUserError::CreatedAtParse(db_user.created_at))?,
@@ -177,7 +177,7 @@ impl TryFrom<&DbUser> for User {
         Ok(Self {
             uuid: db_user.uuid,
             username: db_user.username.clone(),
-            role: Role::try_from(db_user.role).unwrap(),
+            role: Role::try_from(db_user.role)?,
             password_hash: PasswordHash::from_encoded(&db_user.password_hash)?,
             created_at: DateTime::from_timestamp(db_user.created_at, 0)
                 .ok_or(UnadaptUserError::CreatedAtParse(db_user.created_at))?,
