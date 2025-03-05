@@ -93,6 +93,7 @@ impl UserService {
         if password.is_empty() {
             return Err(GenerateError::EmptyPassword);
         }
+
         let mb = self.config.argon2_memory_mib;
         let bytes = mb * BYTES_PER_MB / 1024; // We have to convert back from MiB to KiB because orion expects KiB
         let iterations = self.config.argon2_iterations;

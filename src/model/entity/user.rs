@@ -5,7 +5,7 @@ use rocket::serde::{Deserialize, Serialize};
 use sqlx::FromRow;
 use uuid::Uuid;
 
-/// An enum representing the possible roles a user can have.
+/// The possible roles a user can have.
 #[derive(
     Debug,
     Clone,

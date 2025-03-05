@@ -15,14 +15,14 @@ pub struct SetupGetResponse {
     pub needs_setup: bool,
 }
 
-/// An enum representing possible errors that can occur while checking the backend's setup status.
+/// An error response containing one of the possible errors that can occur while checking the backend's setup status.
 #[derive(Debug, Error, Serialize, Deserialize, JsonSchema)]
 #[serde(crate = "rocket::serde")]
 #[schemars(crate = "okapi::schemars")]
 pub enum SetupGetErrorResponse {
-    /// The setup service returned an error while checking if the backend needs to be set up
+    /// The setup service returned an error while checking whether the backend needs to be set up
     #[error(
-        "The setup service returned an error while checking if the backend needs to be set up: {0}"
+        "The setup service returned an error while checking whether the backend needs to be set up: {0}"
     )]
     SetupServiceCheck(String),
 }
@@ -35,7 +35,7 @@ impl From<service::setup::SetupCheckError> for SetupGetErrorResponse {
 
 // ### POST ###
 
-/// A payload containing information needed to set up the backend.
+/// The payload to set up the backend.
 #[derive(Debug, Serialize, Deserialize, JsonSchema)]
 #[serde(crate = "rocket::serde")]
 #[schemars(crate = "okapi::schemars")]
@@ -47,13 +47,13 @@ pub struct SetupPostPayload {
     pub password: String,
 }
 
-/// An empty response indicating that the backend has been set up successfully.
+/// An empty success response, indicating that the backend has been set up successfully.
 #[derive(Debug, Serialize, Deserialize, JsonSchema)]
 #[serde(crate = "rocket::serde")]
 #[schemars(crate = "okapi::schemars")]
 pub struct SetupPostResponse {}
 
-/// An enum representing possible errors that can occur while setting up the backend.
+/// An error response containing one of the possible errors that can occur while setting up the backend.
 #[derive(Debug, Error, Serialize, Deserialize, JsonSchema)]
 #[serde(crate = "rocket::serde")]
 #[schemars(crate = "okapi::schemars")]
@@ -68,12 +68,14 @@ pub enum SetupPostErrorResponse {
     #[error("The backend is already set up")]
     AlreadySetup,
 
-    /// The user service returned an error while generating the user
-    #[error("The user service returned an error while generating the user: {0}")]
+    /// The user service returned an error while generating the system user
+    #[error("The user service returned an error while generating the system user: {0}")]
     UserServiceGenerate(String),
 
-    /// The user service returned an error while creating the user in the database
-    #[error("The user service returned an error while creating the user in the database: {0}")]
+    /// The user service returned an error while creating the system user inside the database
+    #[error(
+        "The user service returned an error while creating the system user inside the database: {0}"
+    )]
     UserServiceCreate(String),
 }
 

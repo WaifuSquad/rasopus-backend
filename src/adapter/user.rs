@@ -148,8 +148,8 @@ pub enum UnadaptUserError {
     #[error("Failed to parse password hash: {0}")]
     PasswordHashParse(#[from] UnknownCryptoError),
 
-    #[error("The timestamp was out of range: {0}")]
-    TimestampParse(i64),
+    #[error("Failed to parse created_at timestamp: The timestamp was out of range: {0}")]
+    CreatedAtParse(i64),
 }
 
 impl TryFrom<DbUser> for User {
@@ -162,7 +162,7 @@ impl TryFrom<DbUser> for User {
             role: Role::try_from(db_user.role).unwrap(),
             password_hash: PasswordHash::from_encoded(&db_user.password_hash)?,
             created_at: DateTime::from_timestamp(db_user.created_at, 0)
-                .ok_or(UnadaptUserError::TimestampParse(db_user.created_at))?,
+                .ok_or(UnadaptUserError::CreatedAtParse(db_user.created_at))?,
         })
     }
 }
@@ -177,7 +177,7 @@ impl TryFrom<&DbUser> for User {
             role: Role::try_from(db_user.role).unwrap(),
             password_hash: PasswordHash::from_encoded(&db_user.password_hash)?,
             created_at: DateTime::from_timestamp(db_user.created_at, 0)
-                .ok_or(UnadaptUserError::TimestampParse(db_user.created_at))?,
+                .ok_or(UnadaptUserError::CreatedAtParse(db_user.created_at))?,
         })
     }
 }

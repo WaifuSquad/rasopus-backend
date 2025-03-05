@@ -20,6 +20,21 @@ use crate::{
     service::{SetupService, UserService},
 };
 
+/// Check whether the backend needs to be set up.
+#[openapi]
+#[get("/setup")]
+pub async fn setup_get(
+    user_service: &State<UserService>,
+    setup_service: &State<SetupService>,
+    database_pool: &State<Pool<Postgres>>,
+) -> Result<SetupGetResponse, SetupGetErrorResponse> {
+    let needs_setup = setup_service
+        .needs_setup(user_service, database_pool)
+        .await?;
+
+    Ok(SetupGetResponse { needs_setup })
+}
+
 impl<'r> Responder<'r, 'static> for SetupGetResponse {
     fn respond_to(self, request: &'r Request<'_>) -> rocket::response::Result<'static> {
         Json(self).respond_to(request)
@@ -50,19 +65,32 @@ impl_okapi_json_responder!(SetupGetErrorResponse, {
     },
 });
 
-/// Check whether the backend needs to be set up.
+/// Set up the backend.
 #[openapi]
-#[get("/setup")]
-pub async fn setup_get(
-    user_service: &State<UserService>,
+#[post("/setup", data = "<payload>")]
+pub async fn setup_post(
+    payload: Json<SetupPostPayload>,
     setup_service: &State<SetupService>,
+    user_service: &State<UserService>,
     database_pool: &State<Pool<Postgres>>,
-) -> Result<SetupGetResponse, SetupGetErrorResponse> {
+) -> Result<SetupPostResponse, SetupPostErrorResponse> {
     let needs_setup = setup_service
         .needs_setup(user_service, database_pool)
         .await?;
 
-    Ok(SetupGetResponse { needs_setup })
+    if !needs_setup {
+        return Err(SetupPostErrorResponse::AlreadySetup);
+    }
+
+    let payload = payload.into_inner();
+    let (username, password) = (payload.username, payload.password);
+    let user = user_service
+        .generate(username, &password, Role::System)
+        .await?;
+
+    user_service.create(user, database_pool).await?;
+
+    Ok(SetupPostResponse {})
 }
 
 impl<'r> Responder<'r, 'static> for SetupPostResponse {
@@ -121,31 +149,3 @@ impl_okapi_json_responder!(SetupPostErrorResponse, {
         example: serde_json::json!(SetupPostErrorResponse::UserServiceCreate("The user service returned an error while creating the user in the database: Database error: pool timed out while waiting for an open connection".to_string())),
     },
 });
-
-/// Set up the backend.
-#[openapi]
-#[post("/setup", data = "<payload>")]
-pub async fn setup_post(
-    payload: Json<SetupPostPayload>,
-    setup_service: &State<SetupService>,
-    user_service: &State<UserService>,
-    database_pool: &State<Pool<Postgres>>,
-) -> Result<SetupPostResponse, SetupPostErrorResponse> {
-    let needs_setup = setup_service
-        .needs_setup(user_service, database_pool)
-        .await?;
-
-    if !needs_setup {
-        return Err(SetupPostErrorResponse::AlreadySetup);
-    }
-
-    let payload = payload.into_inner();
-    let (username, password) = (payload.username, payload.password);
-    let user = user_service
-        .generate(username, &password, Role::System)
-        .await?;
-
-    user_service.create(user, database_pool).await?;
-
-    Ok(SetupPostResponse {})
-}
