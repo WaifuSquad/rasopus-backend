@@ -13,13 +13,13 @@ pub struct RasopusConfig {
     pub port: Option<u16>,
     pub secret_key: String,
 
-    //Database
-    pub database_user: String,
-    pub database_password: String,
-    pub database_host: String,
-    pub database_port: u16,
-    pub database_database: String,
-    pub database_pool_size: Option<u32>,
+    //Postgres
+    pub postgres_user: String,
+    pub postgres_password: String,
+    pub postgres_host: String,
+    pub postgres_port: u16,
+    pub postgres_database: String,
+    pub postgres_pool_size: Option<u32>,
 
     //UserService
     pub argon2_iterations: Option<u32>,

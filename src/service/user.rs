@@ -117,7 +117,7 @@ impl UserService {
     pub async fn exists_any_user_by_role(
         &self,
         role: Role,
-        database_pool: &Pool<Postgres>,
+        postgres_pool: &Pool<Postgres>,
     ) -> Result<bool, ExistsError> {
         let query = format!(
             "SELECT * FROM {} WHERE role = $1 LIMIT 1",
@@ -126,7 +126,7 @@ impl UserService {
 
         let result = sqlx::query(&query)
             .bind::<i16>(role.into())
-            .fetch_optional(database_pool)
+            .fetch_optional(postgres_pool)
             .await?;
 
         Ok(result.is_some())
@@ -135,9 +135,9 @@ impl UserService {
     pub async fn exists(
         &self,
         user: &User,
-        database_pool: &Pool<Postgres>,
+        postgres_pool: &Pool<Postgres>,
     ) -> Result<bool, ExistsError> {
-        let exists = DbUser::exists(&user.uuid, database_pool).await?;
+        let exists = DbUser::exists(&user.uuid, postgres_pool).await?;
 
         Ok(exists)
     }
@@ -145,14 +145,14 @@ impl UserService {
     pub async fn create(
         &self,
         user: &User,
-        database_pool: &Pool<Postgres>,
+        postgres_pool: &Pool<Postgres>,
     ) -> Result<(), CreateError> {
-        if DbUser::exists(&user.uuid, database_pool).await? {
+        if DbUser::exists(&user.uuid, postgres_pool).await? {
             return Err(CreateError::AlreadyExists);
         }
 
         let db_user = DbUser::from(user);
-        db_user.create(database_pool).await?;
+        db_user.create(postgres_pool).await?;
 
         Ok(())
     }
@@ -160,13 +160,13 @@ impl UserService {
     pub async fn load(
         &self,
         identifier: &Uuid,
-        database_pool: &Pool<Postgres>,
+        postgres_pool: &Pool<Postgres>,
     ) -> Result<Option<User>, LoadError> {
-        if !DbUser::exists(identifier, database_pool).await? {
+        if !DbUser::exists(identifier, postgres_pool).await? {
             return Ok(None);
         }
 
-        let db_user = DbUser::load(identifier, database_pool).await?;
+        let db_user = DbUser::load(identifier, postgres_pool).await?;
         let user = User::try_from(&db_user)?;
 
         Ok(Some(user))
@@ -175,14 +175,14 @@ impl UserService {
     pub async fn update(
         &self,
         user: &User,
-        database_pool: &Pool<Postgres>,
+        postgres_pool: &Pool<Postgres>,
     ) -> Result<(), UpdateError> {
-        if !DbUser::exists(&user.uuid, database_pool).await? {
+        if !DbUser::exists(&user.uuid, postgres_pool).await? {
             return Err(UpdateError::NotFound);
         }
 
         let db_user = DbUser::from(user);
-        db_user.update(database_pool).await?;
+        db_user.update(postgres_pool).await?;
 
         Ok(())
     }
@@ -190,13 +190,13 @@ impl UserService {
     pub async fn delete(
         &self,
         user: &User,
-        database_pool: &Pool<Postgres>,
+        postgres_pool: &Pool<Postgres>,
     ) -> Result<(), DeleteError> {
-        if !DbUser::exists(&user.uuid, database_pool).await? {
+        if !DbUser::exists(&user.uuid, postgres_pool).await? {
             return Err(DeleteError::NotFound);
         }
 
-        DbUser::delete(&user.uuid, database_pool).await?;
+        DbUser::delete(&user.uuid, postgres_pool).await?;
 
         Ok(())
     }
@@ -204,10 +204,10 @@ impl UserService {
     pub async fn persist(
         &self,
         user: User,
-        database_pool: &Pool<Postgres>,
+        postgres_pool: &Pool<Postgres>,
     ) -> Result<(), PersistError> {
         let db_user = DbUser::from(&user);
-        db_user.persist(database_pool).await?;
+        db_user.persist(postgres_pool).await?;
 
         Ok(())
     }

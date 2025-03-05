@@ -1,4 +1,4 @@
-use config::{database::DatabaseConfig, rasopus::RasopusConfig, rocket::RocketConfig};
+use config::{postgres::PostgresConfig, rasopus::RasopusConfig, rocket::RocketConfig};
 use rocket::Rocket;
 use rocket_okapi::swagger_ui::*;
 use service::ServiceCollection;
@@ -15,7 +15,7 @@ pub mod service;
 
 pub fn build_rocket(
     rocket_config: RocketConfig,
-    database_pool: Pool<Postgres>,
+    postgres_pool: Pool<Postgres>,
     service_collection: ServiceCollection,
 ) -> Rocket<rocket::Build> {
     let mut figment = rocket::Config::figment();
@@ -32,7 +32,7 @@ pub fn build_rocket(
             }),
         );
 
-    rocket = rocket.manage(database_pool);
+    rocket = rocket.manage(postgres_pool);
     rocket = rocket.manage(service_collection.user);
     rocket = rocket.manage(service_collection.setup);
 
@@ -56,18 +56,18 @@ pub enum RuntimeError {
 
 pub async fn run(rasopus_config: RasopusConfig) -> Result<(), RuntimeError> {
     println!("Connecting to database");
-    let database_config = DatabaseConfig::from(&rasopus_config);
-    let database_pool = PgPoolOptions::new()
-        .max_connections(database_config.pool_size)
-        .connect(&database_config.to_connection_string())
+    let postgres_config = PostgresConfig::from(&rasopus_config);
+    let postgres_pool = PgPoolOptions::new()
+        .max_connections(postgres_config.pool_size)
+        .connect(&postgres_config.to_connection_string())
         .await?;
 
     println!("Checking database migrations");
     let migrator = sqlx::migrate!("./migrations");
-    let needs_migration = database::needs_migration(&database_pool, &migrator).await?;
+    let needs_migration = database::needs_migration(&postgres_pool, &migrator).await?;
     if needs_migration {
         println!("Applying missing database migrations");
-        migrator.run(&database_pool).await?;
+        migrator.run(&postgres_pool).await?;
         println!("Database migrations applied");
     } else {
         println!("Database is up to date");
@@ -78,7 +78,7 @@ pub async fn run(rasopus_config: RasopusConfig) -> Result<(), RuntimeError> {
 
     println!("Building Rocket with Rasopus configuration");
     let rocket_config = RocketConfig::from(&rasopus_config);
-    let rocket = build_rocket(rocket_config, database_pool, service_collection);
+    let rocket = build_rocket(rocket_config, postgres_pool, service_collection);
 
     println!("Launching Rocket");
     let result = rocket.launch().await;
