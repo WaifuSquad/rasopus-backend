@@ -10,6 +10,7 @@ use super::rasopus::RasopusConfig;
 pub struct RocketConfig {
     pub address: Option<String>,
     pub port: Option<u16>,
+    pub secret_key: String,
 }
 
 impl RocketConfig {
@@ -22,6 +23,8 @@ impl RocketConfig {
             rocket_figment = rocket_figment.merge(("port", port));
         }
 
+        rocket_figment = rocket_figment.merge(("secret_key", self.secret_key));
+
         rocket_figment
     }
 }
@@ -31,6 +34,7 @@ impl From<RasopusConfig> for RocketConfig {
         Self {
             address: environment_config.address,
             port: environment_config.port,
+            secret_key: environment_config.secret_key,
         }
     }
 }
@@ -40,6 +44,7 @@ impl From<&RasopusConfig> for RocketConfig {
         Self {
             address: environment_config.address.clone(),
             port: environment_config.port,
+            secret_key: environment_config.secret_key.clone(),
         }
     }
 }

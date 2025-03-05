@@ -1,6 +1,9 @@
 use rocket::serde::{Deserialize, Serialize};
 
 use super::rasopus::RasopusConfig;
+
+const DEFAULT_DATABASE_POOL_SIZE: u32 = 10;
+
 #[derive(Debug, Clone, Serialize, Deserialize)]
 #[serde(crate = "rocket::serde")]
 pub struct DatabaseConfig {
@@ -29,7 +32,9 @@ impl From<RasopusConfig> for DatabaseConfig {
             host: environment_config.database_host,
             port: environment_config.database_port,
             database: environment_config.database_database,
-            pool_size: environment_config.database_pool_size,
+            pool_size: environment_config
+                .database_pool_size
+                .unwrap_or(DEFAULT_DATABASE_POOL_SIZE),
         }
     }
 }
@@ -42,7 +47,9 @@ impl From<&RasopusConfig> for DatabaseConfig {
             host: environment_config.database_host.clone(),
             port: environment_config.database_port,
             database: environment_config.database_database.clone(),
-            pool_size: environment_config.database_pool_size,
+            pool_size: environment_config
+                .database_pool_size
+                .unwrap_or(DEFAULT_DATABASE_POOL_SIZE),
         }
     }
 }

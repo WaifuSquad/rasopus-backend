@@ -11,6 +11,7 @@ pub struct RasopusConfig {
     //Rocket
     pub address: Option<String>,
     pub port: Option<u16>,
+    pub secret_key: String,
 
     //Database
     pub database_user: String,
@@ -18,7 +19,7 @@ pub struct RasopusConfig {
     pub database_host: String,
     pub database_port: u16,
     pub database_database: String,
-    pub database_pool_size: u32,
+    pub database_pool_size: Option<u32>,
 
     //UserService
     pub argon2_iterations: Option<u32>,
