@@ -146,6 +146,6 @@ impl_okapi_json_responder!(SetupPostErrorResponse, {
     },
     "500" => {
         description: "The backend could not be set up.",
-        example: serde_json::json!(SetupPostErrorResponse::UserServiceCreate("The user service returned an error while creating the user in the database: Database error: pool timed out while waiting for an open connection".to_string())),
+        example: serde_json::json!(SetupPostErrorResponse::UserServiceCreate("The user service returned an error while creating the system user inside the database: Database error: pool timed out while waiting for an open connection".to_string())),
     },
 });
