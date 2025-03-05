@@ -1,4 +1,4 @@
-use config::{database::DatabaseConfig, rasopus::RasopusConfig, rocket::RocketConfig};
+use config::{postgres::PostgresConfig, rasopus::RasopusConfig, rocket::RocketConfig};
 use rocket::Rocket;
 use rocket_okapi::swagger_ui::*;
 use service::ServiceCollection;
@@ -56,7 +56,7 @@ pub enum RuntimeError {
 
 pub async fn run(rasopus_config: RasopusConfig) -> Result<(), RuntimeError> {
     println!("Connecting to database");
-    let database_config = DatabaseConfig::from(&rasopus_config);
+    let database_config = PostgresConfig::from(&rasopus_config);
     let database_pool = PgPoolOptions::new()
         .max_connections(database_config.pool_size)
         .connect(&database_config.to_connection_string())
