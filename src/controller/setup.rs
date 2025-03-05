@@ -88,7 +88,7 @@ pub async fn setup_post(
         .generate(username, &password, Role::System)
         .await?;
 
-    user_service.create(user, database_pool).await?;
+    user_service.create(&user, database_pool).await?;
 
     Ok(SetupPostResponse {})
 }

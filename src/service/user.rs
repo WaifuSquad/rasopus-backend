@@ -134,7 +134,7 @@ impl UserService {
 
     pub async fn exists(
         &self,
-        user: User,
+        user: &User,
         database_pool: &Pool<Postgres>,
     ) -> Result<bool, ExistsError> {
         let exists = DbUser::exists(&user.uuid, database_pool).await?;
@@ -144,14 +144,14 @@ impl UserService {
 
     pub async fn create(
         &self,
-        user: User,
+        user: &User,
         database_pool: &Pool<Postgres>,
     ) -> Result<(), CreateError> {
         if DbUser::exists(&user.uuid, database_pool).await? {
             return Err(CreateError::AlreadyExists);
         }
 
-        let db_user = DbUser::from(&user);
+        let db_user = DbUser::from(user);
         db_user.create(database_pool).await?;
 
         Ok(())
@@ -159,14 +159,14 @@ impl UserService {
 
     pub async fn load(
         &self,
-        identifier: Uuid,
+        identifier: &Uuid,
         database_pool: &Pool<Postgres>,
     ) -> Result<Option<User>, LoadError> {
-        if !DbUser::exists(&identifier, database_pool).await? {
+        if !DbUser::exists(identifier, database_pool).await? {
             return Ok(None);
         }
 
-        let db_user = DbUser::load(&identifier, database_pool).await?;
+        let db_user = DbUser::load(identifier, database_pool).await?;
         let user = User::try_from(&db_user)?;
 
         Ok(Some(user))
@@ -174,14 +174,14 @@ impl UserService {
 
     pub async fn update(
         &self,
-        user: User,
+        user: &User,
         database_pool: &Pool<Postgres>,
     ) -> Result<(), UpdateError> {
         if !DbUser::exists(&user.uuid, database_pool).await? {
             return Err(UpdateError::NotFound);
         }
 
-        let db_user = DbUser::from(&user);
+        let db_user = DbUser::from(user);
         db_user.update(database_pool).await?;
 
         Ok(())
@@ -189,15 +189,14 @@ impl UserService {
 
     pub async fn delete(
         &self,
-        user: User,
+        user: &User,
         database_pool: &Pool<Postgres>,
     ) -> Result<(), DeleteError> {
         if !DbUser::exists(&user.uuid, database_pool).await? {
             return Err(DeleteError::NotFound);
         }
 
-        let db_user = DbUser::from(&user);
-        db_user.delete(database_pool).await?;
+        DbUser::delete(&user.uuid, database_pool).await?;
 
         Ok(())
     }

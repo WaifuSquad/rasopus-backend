@@ -101,11 +101,14 @@ impl DbEntity for DbUser {
         Ok(())
     }
 
-    async fn delete(&self, database_pool: &Pool<Postgres>) -> Result<(), Self::DeleteError> {
+    async fn delete(
+        identifier: &Self::Identifier,
+        database_pool: &Pool<Postgres>,
+    ) -> Result<(), Self::DeleteError> {
         let query = format!("DELETE FROM {} WHERE uuid = $1", Self::main_table_name());
 
         sqlx::query(&query)
-            .bind(self.uuid)
+            .bind(identifier)
             .execute(database_pool)
             .await?;
 

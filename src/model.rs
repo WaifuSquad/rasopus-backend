@@ -36,7 +36,10 @@ pub trait DbEntity: Sized + Send {
 
     async fn update(&self, database_pool: &Pool<Postgres>) -> Result<(), Self::UpdateError>;
 
-    async fn delete(&self, database_pool: &Pool<Postgres>) -> Result<(), Self::DeleteError>;
+    async fn delete(
+        identifier: &Self::Identifier,
+        database_pool: &Pool<Postgres>,
+    ) -> Result<(), Self::DeleteError>;
 
     async fn persist(&self, database_pool: &Pool<Postgres>) -> Result<(), Self::PersistError> {
         let exists = Self::exists(&self.get_identifier().clone(), database_pool).await?;
