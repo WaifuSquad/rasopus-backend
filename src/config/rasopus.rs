@@ -1,21 +1,29 @@
 use lum_config::{EnvHandler, EnvironmentConfigParseError};
 use rocket::serde::{Deserialize, Serialize};
 
-use super::database::DatabaseType;
-
 #[derive(Debug, Clone, Serialize, Deserialize)]
 #[serde(crate = "rocket::serde")]
 pub struct RasopusConfig {
+    //We have to duplicate the fields here as serde's flatten doesn't support prefixing
+    //I also tried serde_with but it doesn't seem to work with reading from environment variables
+    //See: https://github.com/serde-rs/serde/issues/2071
+
+    //Rocket
     pub address: Option<String>,
     pub port: Option<u16>,
+    pub secret_key: String,
 
-    pub database_type: DatabaseType,
+    //Database
     pub database_user: String,
     pub database_password: String,
     pub database_host: String,
     pub database_port: u16,
     pub database_database: String,
-    pub database_pool_size: u32,
+    pub database_pool_size: Option<u32>,
+
+    //UserService
+    pub argon2_iterations: Option<u32>,
+    pub argon2_memory_mib: Option<u32>,
 }
 
 impl RasopusConfig {
