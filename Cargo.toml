@@ -34,6 +34,6 @@ orion = { version = "0.17.9", features = ["serde", "alloc"] }
 rocket = { version = "0.5.1", features = ["json", "secrets"] }
 rocket_okapi = { version = "0.9.0", features = ["preserve_order", "secrets", "swagger", "uuid"] }
 thiserror = "2.0.12"
-sqlx = { version = "0.8.3", features = ["runtime-tokio", "tls-rustls", "postgres", "derive", "macros", "migrate", "uuid", "json", "chrono"] }
+sqlx = { version = "0.8.4", features = ["runtime-tokio", "tls-rustls", "postgres", "derive", "macros", "migrate", "uuid", "json", "chrono"] }
 tokio = { version = "1.44.0", features = ["full"] }
 uuid = { version = "1.15.1", features = ["fast-rng", "v4"] }
