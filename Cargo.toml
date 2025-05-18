@@ -25,7 +25,7 @@ lto = false
 opt-level = 3
 
 [dependencies]
-anyhow = "1.0.97"
+anyhow = "1.0.98"
 lum_config = "0.2.1"
 chrono = { version = "0.4.40", features = ["alloc", "std", "clock", "now", "serde"] }
 num_enum = "0.7.3"
