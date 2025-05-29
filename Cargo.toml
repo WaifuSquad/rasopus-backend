@@ -27,7 +27,7 @@ opt-level = 3
 [dependencies]
 anyhow = "1.0.98"
 lum_config = "0.2.2"
-chrono = { version = "0.4.40", features = ["alloc", "std", "clock", "now", "serde"] }
+chrono = { version = "0.4.41", features = ["alloc", "std", "clock", "now", "serde"] }
 num_enum = "0.7.3"
 okapi = { version = "0.7.0", features = ["impl_json_schema", "preserve_order"] }
 orion = { version = "0.17.10", features = ["serde", "alloc"] }
