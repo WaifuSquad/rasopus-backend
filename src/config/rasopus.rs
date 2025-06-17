@@ -30,6 +30,6 @@ impl RasopusConfig {
     pub fn from_env<IntoString: Into<String>>(
         app_name: IntoString,
     ) -> Result<Self, EnvironmentConfigParseError> {
-        EnvHandler::new(app_name).load_config()
+        EnvHandler::new(app_name).load()
     }
 }
